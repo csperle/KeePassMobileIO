@@ -1,0 +1,61 @@
+<project name="KeePassMobileIO" default="jar" basedir=".">
+	<property name="wtk.path" value="/opt/WTK2.5.2"/>
+	<property name="pulsar.path" value="/opt/eclipse35pulsar"/>
+    <property name="src.path" value="src"/>
+	<property name="test.path" value="test"/>
+	<property name="lib.path" value="lib"/>
+	<property name="build.path" value="build"/>
+    <property name="deploy.path" value="deploy"/>
+    
+    <path id="build.classpath">
+		<fileset dir="${lib.path}">
+			<include name="**/*.jar" />
+		</fileset>
+    	<fileset dir="${wtk.path}/lib">
+    		<include name="**/*.jar" />
+    	</fileset>
+    	<fileset dir="${pulsar.path}/configuration/org.eclipse.osgi/bundles/10/1/.cp/lib">
+    		<include name="jmunit4cldc11-1.2.1.jar" />
+    	</fileset>
+	</path>
+    
+	<target name="init">
+		<tstamp>
+			<format property="build.number" pattern="yyMMdd0"/>
+		</tstamp>
+        <delete dir="${build.path}"/>
+		<delete file="${deploy.path}/keepassmobileio.jar" />
+		<mkdir dir="${build.path}"/>
+		<mkdir dir="${deploy.path}"/>
+	</target>
+	
+	<target name="compile src" depends="init">
+	    <javac srcdir="${src.path}" destdir="${build.path}" debug="true" nowarn="true" source="1.3" target="1.1">
+	        <classpath>
+			    <path refid="build.classpath"/>
+		    </classpath>
+	    </javac>
+	</target>
+	
+    <target name="compile test" depends="init">
+        <javac srcdir="${test.path}" destdir="${build.path}" debug="true" nowarn="true" source="1.3" target="1.1">
+            <classpath>
+		    	<path refid="build.classpath"/>
+		    </classpath>
+        </javac>
+    </target>
+	
+	<target name="jar" depends="compile src">
+		<jar destfile="${deploy.path}/keepassmobileio.jar" basedir="${build.path}" compress="true" includes="**/*.class">
+			<manifest>
+				<attribute name="Built-By" value="Christoph Sperle" />
+				<attribute name="Vendor" value="CBS" />
+				<attribute name="Version" value="0.9 (${build.number})" />
+			</manifest>
+		</jar>
+	</target>
+	
+    <target name="cleanup">
+        <delete dir="${build.path}"/>
+    </target>
+</project>
