@@ -36,7 +36,7 @@ import org.sperle.keepass.monitor.ProgressMonitor;
 public final class KeePassMobileIO {
     private KeePassDatabaseManager dbm;
 
-    protected KeePassMobileIO(KeePassDatabaseManager dbm) {
+    public KeePassMobileIO(KeePassDatabaseManager dbm) {
         this.dbm = dbm;
     }
     
