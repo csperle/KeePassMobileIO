@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="MTJ.JMUnitLaunchConfigurationType">
+<booleanAttribute key="mtj.do_ota" value="false"/>
+<booleanAttribute key="mtj.do_test_case_launch" value="false"/>
+<booleanAttribute key="mtj.do_test_suite_launch" value="true"/>
+<stringAttribute key="mtj.emulated_device" value=""/>
+<stringAttribute key="mtj.emulated_device_group" value=""/>
+<stringAttribute key="mtj.launch_params" value="-Ddevelopment"/>
+<booleanAttribute key="mtj.use_project_device" value="true"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.sperle.keepass.KeePassMobileIOTestSuite"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="KeePassMobileIO"/>
+</launchConfiguration>
