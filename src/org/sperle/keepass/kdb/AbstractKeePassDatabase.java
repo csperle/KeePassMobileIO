@@ -28,7 +28,7 @@ import org.sperle.keepass.util.ByteArrays;
 
 /**
  * Implements the logical access layer to the database. This algorithms have to be implementation independent.
- * TODO test these methods
+ * TODO test this class
  */
 public abstract class AbstractKeePassDatabase implements KeePassDatabase, KdbChangeListener {
     protected String fileName;
