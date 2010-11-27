@@ -94,4 +94,10 @@ public interface KeePassDatabaseManager {
      * @throws KeePassDatabaseException if KeePass database is not supported
      */
     void setKeyFile(KeePassDatabase kdb, String filename) throws IOException, KeePassDatabaseException;
+
+    /**
+     * Closes the KeePass database.
+     * @param kdb KeePass database to close
+     */
+    void close(KeePassDatabase kdb);
 }

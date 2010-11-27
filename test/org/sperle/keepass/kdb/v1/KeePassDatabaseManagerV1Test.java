@@ -7,6 +7,7 @@ import org.sperle.keepass.crypto.bc.AESCipher;
 import org.sperle.keepass.crypto.bc.SHA256Hash;
 import org.sperle.keepass.io.IOManager;
 import org.sperle.keepass.kdb.AbstractKeePassDatabase;
+import org.sperle.keepass.kdb.DoNothingOnCloseStrategy;
 import org.sperle.keepass.kdb.KdbGroup;
 import org.sperle.keepass.kdb.KeePassDatabase;
 
@@ -63,7 +64,7 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
 	cm.addCipher(new AESCipher());
 	fileManager = new TestIOManager();
 	rand = new TestRandom();
-	dm = new KeePassDatabaseManagerV1(fileManager, cm, rand);
+	dm = new KeePassDatabaseManagerV1(fileManager, cm, new DoNothingOnCloseStrategy(), rand);
 	dm.registerCryptoAlgorithm(new KeePassDatabaseAESCryptoAlgorithmV1(cm));
     }
     

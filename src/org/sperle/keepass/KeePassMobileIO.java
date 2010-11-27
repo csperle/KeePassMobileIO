@@ -113,4 +113,13 @@ public final class KeePassMobileIO {
             KeePassDatabaseException {
         return dbm.save(kdb, filename, pm);
     }
+
+    /**
+     * Closes the KeePass database.
+     * @param kdb KeePass database to close
+     * @throws KeePassDatabaseException  if KeePass database is not supported
+     */
+    public void close(KeePassDatabase kdb) {
+        dbm.close(kdb);
+    }
 }

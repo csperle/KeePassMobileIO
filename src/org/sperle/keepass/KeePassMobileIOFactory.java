@@ -26,6 +26,8 @@ import org.sperle.keepass.crypto.bc.BcRandom;
 import org.sperle.keepass.crypto.bc.SHA256Hash;
 import org.sperle.keepass.io.IOManager;
 import org.sperle.keepass.io.j2me.J2meIOManager;
+import org.sperle.keepass.kdb.CloseStrategy;
+import org.sperle.keepass.kdb.DoNothingOnCloseStrategy;
 import org.sperle.keepass.kdb.KeePassDatabaseCryptoAlgorithm;
 import org.sperle.keepass.kdb.KeePassDatabaseManager;
 import org.sperle.keepass.kdb.v1.KeePassDatabaseAESCryptoAlgorithmV1;
@@ -53,12 +55,16 @@ public class KeePassMobileIOFactory {
 
     protected KeePassDatabaseManager createKeePassDatabaseManager() {
         CryptoManager cm = createCryptoManager();
-	KeePassDatabaseManagerV1 kdbm = new KeePassDatabaseManagerV1(createIOManager(), cm, createRandom());
+	KeePassDatabaseManagerV1 kdbm = new KeePassDatabaseManagerV1(createIOManager(), cm, createCloseStrategy(), createRandom());
 	KeePassDatabaseCryptoAlgorithm[] cryptoAlgorithms = getKeePassDatabaseCryptoAlgorithms(cm);
 	for (int i = 0; i < cryptoAlgorithms.length; i++) {
     	    kdbm.registerCryptoAlgorithm(cryptoAlgorithms[i]);
 	}
 	return kdbm;
+    }
+
+    protected CloseStrategy createCloseStrategy() {
+        return new DoNothingOnCloseStrategy();
     }
 
     protected IOManager createIOManager() {

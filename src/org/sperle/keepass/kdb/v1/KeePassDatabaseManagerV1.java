@@ -28,6 +28,7 @@ import org.sperle.keepass.crypto.CryptoManager;
 import org.sperle.keepass.crypto.Hash;
 import org.sperle.keepass.crypto.KeePassCryptoException;
 import org.sperle.keepass.io.IOManager;
+import org.sperle.keepass.kdb.CloseStrategy;
 import org.sperle.keepass.kdb.KdbEntry;
 import org.sperle.keepass.kdb.KeePassDatabase;
 import org.sperle.keepass.kdb.KeePassDatabaseCryptoAlgorithm;
@@ -45,13 +46,15 @@ import org.sperle.keepass.util.ByteArrays;
 public class KeePassDatabaseManagerV1 implements KeePassDatabaseManager {
     private IOManager fileManager;
     private CryptoManager cryptoManager;
+    private CloseStrategy closeStrategy;
     private Random rand;
     
     private Hashtable cryptoAlgorithms = new Hashtable();
     
-    public KeePassDatabaseManagerV1(IOManager fileManager, CryptoManager cryptoManager, Random rand) {
+    public KeePassDatabaseManagerV1(IOManager fileManager, CryptoManager cryptoManager, CloseStrategy closeStrategy, Random rand) {
 	this.fileManager = fileManager;
 	this.cryptoManager = cryptoManager;
+	this.closeStrategy = closeStrategy;
 	this.rand = rand;
     }
     
@@ -139,6 +142,10 @@ public class KeePassDatabaseManagerV1 implements KeePassDatabaseManager {
     
     public boolean save(KeePassDatabase kdb, String fileName, ProgressMonitor pm) throws IOException, KeePassDatabaseException, KeePassCryptoException {
         return save(kdb, fileName, pm, false);
+    }
+    
+    public void close(KeePassDatabase kdb) {
+        closeStrategy.close(kdb);
     }
     
     protected boolean save(KeePassDatabase kdb, String fileName, ProgressMonitor pm, boolean forTest) throws IOException, KeePassDatabaseException, KeePassCryptoException {
