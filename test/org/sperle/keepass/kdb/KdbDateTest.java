@@ -9,7 +9,7 @@ import org.sperle.keepass.util.ByteArrays;
 public class KdbDateTest extends KeePassMobileIOTest {
     
     public KdbDateTest() {
-        super(6, "KdbDateTest");
+        super(7, "KdbDateTest");
     }
 
     public void test(int testNumber) throws Throwable {
@@ -20,6 +20,7 @@ public class KdbDateTest extends KeePassMobileIOTest {
         case 3:testSub();break;
         case 4:testFromToDate();break;
         case 5:testIsValid();break;
+        case 6:testEqualsDate();break;
         default:break;
         }
     }
@@ -62,6 +63,11 @@ public class KdbDateTest extends KeePassMobileIOTest {
     public void testIsValid() throws Exception {
         assertTrue(new KdbDate(2009, 12, 02, 21, 19, 00).isValid());
         assertFalse(new KdbDate(2009, 02, 30, 21, 33, 59).isValid());
+    }
+    
+    public void testEqualsDate() throws Exception {
+        assertTrue(new KdbDate(2009, 12, 02, 21, 19, 00).equals(getDate(2009, 12, 02, 21, 19, 00)));
+        assertFalse(new KdbDate(2009, 02, 11, 21, 33, 59).equals(getDate(2009, 02, 10, 21, 33, 59)));
     }
     
     private Date getDate(int year, int month, int day, int hour, int minute, int second) {

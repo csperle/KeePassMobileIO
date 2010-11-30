@@ -148,8 +148,8 @@ public class KdbDate {
      */
     public boolean isValid() {
         try {
-            toDate();
-            return true;
+            Date date = toDate();
+            return this.equals(date);
         } catch (Exception e) {
             return false;
         }
@@ -227,7 +227,7 @@ public class KdbDate {
         }
         return false;
     }
-
+    
     /**
      * Returns the difference of this and the given date in millis.
      * 
@@ -275,5 +275,20 @@ public class KdbDate {
             return false;
         return true;
     }
-
+    
+    /**
+     * Returns true, if this KdbDate instance is equal to the given Date object.
+     */
+    public boolean equals(Date date) {
+        synchronized (cal) {
+            cal.setTime(date);
+            return  cal.get(Calendar.YEAR) == year &&
+                    cal.get(Calendar.MONTH) == month - 1 &&
+                    cal.get(Calendar.DATE) == day &&
+                    cal.get(Calendar.HOUR_OF_DAY) == hour &&
+                    cal.get(Calendar.MINUTE) == minute &&
+                    cal.get(Calendar.SECOND) == second &&
+                    cal.get(Calendar.MILLISECOND) == 0;
+        }
+    }
 }

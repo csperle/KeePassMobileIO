@@ -109,18 +109,26 @@ public class KeePassDatabaseAESCryptoAlgorithmV1 implements KeePassDatabaseCrypt
         return passwordKey;
     }
     
-    /**
-     * Attention: password encoding is ISO-8859-(1-9) -> depending on the system.
-     * Dev problem: Linux returns "UTF-8" as standard encoding!
-     */
     private byte[] getEncodedMasterPassword(String masterPassword) {
         byte[] encMasterPassword = null;
         try {
-            encMasterPassword = System.getProperty("development") != null ? masterPassword.getBytes("ISO-8859-1") : masterPassword.getBytes();
+            encMasterPassword = masterPassword.getBytes(getCorrectPasswordEncoding());
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace(); // Can only happen during development
         }
         return encMasterPassword;
+    }
+
+    /**
+     * Attention: password encoding is ISO-8859-(1-9) -> depending on the system.
+     * Dev problem (eg. when running the tests): Linux returns "UTF-8" as standard encoding!
+     */
+    private String getCorrectPasswordEncoding() {
+        String encoding = System.getProperty("microedition.encoding"); // get system encoding
+        if(encoding == null || !encoding.startsWith("ISO-8859")) {
+            encoding = "ISO-8859-1";
+        }
+        return encoding;
     }
     
     private byte[] encryptMasterKey(byte[] masterSeed, byte[] masterSeed2, int numKeyEncRounds, byte[] passwordKey, ProgressMonitor pm)
