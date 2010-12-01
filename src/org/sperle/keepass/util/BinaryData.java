@@ -22,6 +22,8 @@ package org.sperle.keepass.util;
 
 import java.io.UnsupportedEncodingException;
 
+import com.sun.cldc.i18n.Helper;
+
 /**
  * Helper class with macro methods for the work with binary data.
  */
@@ -80,6 +82,17 @@ public class BinaryData {
     }
     
     /**
+     * Converts binary data back into a char array.
+     */
+    public static char[] toCharArray(byte data[], int offset) {
+        try {
+            return Helper.byteToCharArray(data, offset, getStringLength(data, offset), UTF8_ENCODING);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("UTF-8 encoding not supported on this system");
+        }
+    }
+    
+    /**
      * Converts a String into binary data.
      */
     public static byte[] fromString(String s) {
@@ -91,12 +104,35 @@ public class BinaryData {
     }
     
     /**
+     * Converts a char array into binary data.
+     */
+    public static byte[] fromCharArray(char[] s) {
+        try {
+            return ByteArrays.append(Helper.charToByteArray(s, 0, s.length, UTF8_ENCODING), new byte[]{STRING_TERMINATOR});
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("UTF-8 encoding not supported on this system");
+        }
+    }
+    
+    /**
      * Returns the length of a String as binary data (number of bytes!). Attention: this can differ from
      * the number of chars, because in UTF-8 it is possible, that a char needs more than one byte (Umlaute)!
      */
     public static int getLength(String s) {
-	try {
-	    return s.getBytes(UTF8_ENCODING).length + 1;
+        try {
+            return s.getBytes(UTF8_ENCODING).length + 1;
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("UTF-8 encoding not supported on this system");
+        }
+    }
+    
+    /**
+     * Returns the length of a char array as binary data (number of bytes!). Attention: this can differ from
+     * the number of chars, because in UTF-8 it is possible, that a char needs more than one byte (Umlaute)!
+     */
+    public static int getLength(char[] s) {
+        try {
+            return Helper.charToByteArray(s, 0, s.length, UTF8_ENCODING).length + 1;
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("UTF-8 encoding not supported on this system");
         }

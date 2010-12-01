@@ -5,7 +5,7 @@
 <booleanAttribute key="mtj.do_test_suite_launch" value="true"/>
 <stringAttribute key="mtj.emulated_device" value=""/>
 <stringAttribute key="mtj.emulated_device_group" value=""/>
-<stringAttribute key="mtj.launch_params" value="-Ddevelopment"/>
+<stringAttribute key="mtj.launch_params" value=""/>
 <booleanAttribute key="mtj.use_project_device" value="true"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.sperle.keepass.KeePassMobileIOTestSuite"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="KeePassMobileIO"/>

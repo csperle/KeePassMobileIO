@@ -6,7 +6,7 @@ import org.sperle.keepass.kdb.KdbDate;
 public class KeePassBinaryFieldsTest extends KeePassMobileIOTest {
 
     public KeePassBinaryFieldsTest() {
-        super(7, "KeePassBinaryFieldsTest");
+        super(8, "KeePassBinaryFieldsTest");
     }
 
     public void test(int testNumber) throws Throwable {
@@ -18,6 +18,7 @@ public class KeePassBinaryFieldsTest extends KeePassMobileIOTest {
         case 4:testGroupTerminator();break;
         case 5:testEntryTerminator();break;
         case 6:testFromByteArray();break;
+        case 7:testFromCharArray();break;
         default:break;
         }
     }
@@ -32,6 +33,10 @@ public class KeePassBinaryFieldsTest extends KeePassMobileIOTest {
     
     public void testFromString() {
         assertTrue(ByteArrays.equals(new byte[]{2, 0, 11, 0, 0, 0, 84, 101, 115, 116, 32, 71, 114, 111, 117, 112, 0}, KeePassBinaryFields.fromString(2, "Test Group")));
+    }
+    
+    public void testFromCharArray() {
+        assertTrue(ByteArrays.equals(new byte[]{2, 0, 11, 0, 0, 0, 84, 101, 115, 116, 32, 71, 114, 111, 117, 112, 0}, KeePassBinaryFields.fromCharArray(2, "Test Group".toCharArray())));
     }
     
     public void testFromDate() {

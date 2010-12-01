@@ -68,6 +68,16 @@ public class KeePassBinaryFields {
     }
     
     /**
+     * Converts a char array into a KeePass binary field array.
+     */
+    public static byte[] fromCharArray(int type, char[] value) {
+        byte[] field = new byte[6];
+        BinaryData.fromUnsignedShort(type, field, 0);
+        BinaryData.fromInt(BinaryData.getLength(value), field, 2);
+        return ByteArrays.append(field, BinaryData.fromCharArray(value));
+    }
+    
+    /**
      * Converts a Date into a KeePass binary field array.
      */
     public static byte[] fromDate(int type, KdbDate value) {

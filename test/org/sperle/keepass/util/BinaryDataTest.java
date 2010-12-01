@@ -5,7 +5,7 @@ import org.sperle.keepass.KeePassMobileIOTest;
 public class BinaryDataTest extends KeePassMobileIOTest {
 
     public BinaryDataTest() {
-        super(8, "BinaryDataTest");
+        super(9, "BinaryDataTest");
     }
 
     public void test(int testNumber) throws Throwable {
@@ -18,10 +18,11 @@ public class BinaryDataTest extends KeePassMobileIOTest {
         case 5:testUnsignedShortOutOfRange();break;
         case 6:testString();break;
         case 7:testUnsignedByte();break;
+        case 8:testCharArray();break;
         default:break;
         }
     }
-
+    
     public void testFromInt() {
 	byte[] result = new byte[4];
 	BinaryData.fromInt(0, result, 0);
@@ -86,6 +87,12 @@ public class BinaryDataTest extends KeePassMobileIOTest {
 	assertTrue(ByteArrays.equals(new byte[]{84, 101, 115, 116, 32, 68, -61, -92, 116, 97, 33, 0}, BinaryData.fromString("Test Däta!")));
 	assertEquals("Test Däta!", BinaryData.toString(new byte[]{84, 101, 115, 116, 32, 68, -61, -92, 116, 97, 33, 0}, 0));
 	assertEquals(6, BinaryData.getStringLength(new byte[]{84, 101, 115, 116, 32, 68, -61, -92, 116, 97, 33, 0}, 5));
+    }
+    
+    public void testCharArray() {
+        assertEquals(12, BinaryData.getLength("Test Däta!".toCharArray()));
+        assertTrue(ByteArrays.equals(new byte[]{84, 101, 115, 116, 32, 68, -61, -92, 116, 97, 33, 0}, BinaryData.fromCharArray("Test Däta!".toCharArray())));
+        assertTrue(CharArrays.equals("Test Däta!".toCharArray(), BinaryData.toCharArray(new byte[]{84, 101, 115, 116, 32, 68, -61, -92, 116, 97, 33, 0}, 0)));
     }
     
     public void testUnsignedByte() {
