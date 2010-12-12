@@ -46,10 +46,11 @@ public final class KeePassMobileIO {
      * @param name the name of the new database
      * @param masterPassword key for encryption
      * @param keyFileName path/name of key file for encryption
+     * @param usePasswordEncryption set to true, if password/keyfile memory encryption should be used
      * @throws IOException if key file can not be loaded
      */
-    public KeePassDatabase create(String name, String masterPassword, String keyFileName) throws IOException {
-        return dbm.create(name, masterPassword, keyFileName);
+    public KeePassDatabase create(String name, String masterPassword, String keyFileName, boolean usePasswordEncryption) throws IOException {
+        return dbm.create(name, masterPassword, keyFileName, usePasswordEncryption);
     }
 
     /**
@@ -57,15 +58,16 @@ public final class KeePassMobileIO {
      * @param filename path/name to the kdb file
      * @param masterPassword the master password to decrypt the database
      * @param keyFileName path/name of a key file to decrypt the database
+     * @param usePasswordEncryption set to true, if password/keyfile memory encryption should be used
      * @param pm the progress monitor to monitor loading process, can be null
      * @return the database instance to access it's content
      * @throws IOException if kdb file could not be loaded
      * @throws KeePassCryptoException if kdb file could not be decrypted
      * @throws KeePassDatabaseException if decrypted kdb content is not valid
      */
-    public KeePassDatabase load(String filename, String masterPassword, String keyFileName, ProgressMonitor pm) throws IOException, KeePassCryptoException,
+    public KeePassDatabase load(String filename, String masterPassword, String keyFileName, boolean usePasswordEncryption, ProgressMonitor pm) throws IOException, KeePassCryptoException,
             KeePassDatabaseException {
-        return dbm.load(filename, masterPassword, keyFileName, pm);
+        return dbm.load(filename, masterPassword, keyFileName, usePasswordEncryption, pm);
     }
     
     /**

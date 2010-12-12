@@ -31,8 +31,8 @@ public class CryptoManagerTest extends KeePassMobileIOTest {
     }
     
     public void testBlockCipher() {
-	assertNull(cm.getCipher(AESCipher.NAME));
-	cm.addCipher(new AESCipher());
-	assertNotNull(cm.getCipher(AESCipher.NAME));
+	assertNull(cm.getKdbCipher(AESCipher.NAME));
+	cm.addKdbCipher(new AESCipher());
+	assertNotNull(cm.getKdbCipher(AESCipher.NAME));
     }
 }

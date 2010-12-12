@@ -23,6 +23,7 @@ package org.sperle.keepass;
 import org.sperle.keepass.crypto.CryptoManager;
 import org.sperle.keepass.crypto.bc.AESCipher;
 import org.sperle.keepass.crypto.bc.BcRandom;
+import org.sperle.keepass.crypto.bc.RC4Cipher;
 import org.sperle.keepass.crypto.bc.SHA256Hash;
 import org.sperle.keepass.io.IOManager;
 import org.sperle.keepass.io.j2me.J2meIOManager;
@@ -82,7 +83,8 @@ public class KeePassMobileIOFactory {
     
     protected CryptoManager createCryptoManager() {
 	CryptoManager cm = new CryptoManager();
-	cm.addCipher(new AESCipher());
+	cm.addKdbCipher(new AESCipher());
+	cm.addPasswordCipher(new RC4Cipher());
 	cm.addHash(new SHA256Hash());
 	return cm;
     }

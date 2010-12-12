@@ -23,9 +23,9 @@ package org.sperle.keepass.crypto;
 import org.sperle.keepass.monitor.ProgressMonitor;
 
 /**
- * A cipher is a crypto algorithm, that is able to encrypt and decrypt plain text.
+ * A KeePassDB cipher is a crypto algorithm, that is able to encrypt and decrypt a KeePassDB.
  */
-public interface Cipher {
+public interface KdbCipher {
     /**
      * Returns the name of the cipher.
      */

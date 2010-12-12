@@ -27,6 +27,7 @@ import java.util.Hashtable;
 import org.sperle.keepass.crypto.CryptoManager;
 import org.sperle.keepass.crypto.Hash;
 import org.sperle.keepass.crypto.KeePassCryptoException;
+import org.sperle.keepass.crypto.bc.RC4Cipher;
 import org.sperle.keepass.io.IOManager;
 import org.sperle.keepass.kdb.CloseStrategy;
 import org.sperle.keepass.kdb.KdbEntry;
@@ -58,18 +59,18 @@ public class KeePassDatabaseManagerV1 implements KeePassDatabaseManager {
 	this.rand = rand;
     }
     
-    public KeePassDatabase create(String name, String masterPassword, String keyFileName) throws IOException {
+    public KeePassDatabase create(String name, String masterPassword, String keyFileName, boolean usePasswordEncryption) throws IOException {
         byte[] keyFile = null;
         if(keyFileName != null) {
             keyFile = loadKeyFile(keyFileName);
         }
         
-        KeePassDatabaseV1 kdb = new KeePassDatabaseV1(rand, name, masterPassword, keyFile);
+        KeePassDatabaseV1 kdb = new KeePassDatabaseV1(rand, usePasswordEncryption ? cryptoManager.getPasswordCipher(RC4Cipher.NAME) : null, name, masterPassword, keyFile);
         kdb.init();
         return kdb;
     }
     
-    public KeePassDatabase load(String fileName, String masterPassword, String keyFileName, ProgressMonitor pm) throws IOException, KeePassCryptoException, KeePassDatabaseException {
+    public KeePassDatabase load(String fileName, String masterPassword, String keyFileName, boolean usePasswordEncryption, ProgressMonitor pm) throws IOException, KeePassCryptoException, KeePassDatabaseException {
         if(masterPassword == null && keyFileName == null) {
             throw new IllegalArgumentException("must provide master password or key file");
         }
@@ -86,7 +87,7 @@ public class KeePassDatabaseManagerV1 implements KeePassDatabaseManager {
 	if(data == null) return null; // user canceled
 	ps.setLoadTime(System.currentTimeMillis() - start);
 	
-	KeePassDatabaseV1 kdb = new KeePassDatabaseV1(rand, fileName, masterPassword, keyFile);
+	KeePassDatabaseV1 kdb = new KeePassDatabaseV1(rand, usePasswordEncryption ? cryptoManager.getPasswordCipher(RC4Cipher.NAME) : null, fileName, masterPassword, keyFile);
 	kdb.extractHeader(data);
 	kdb.verifyHeader();
 	

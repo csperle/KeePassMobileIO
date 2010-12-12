@@ -24,6 +24,15 @@ package org.sperle.keepass.util;
  * Helper class with macro methods for the work with byte arrays.
  */
 public class ByteArrays {
+    public static final byte[] EMPTY_STRING = new byte[0];
+    
+    /**
+     * Returns true, if the given byte array equals an empty String("").
+     */
+    public static boolean equalsEmptyString(byte[] s) {
+        return equals(s, EMPTY_STRING);
+    }
+    
     /**
      * Copies a byte array (source) completely into an other byte array (target)
      * at the given offset (and the length of the source array).

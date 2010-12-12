@@ -22,7 +22,7 @@ package org.sperle.keepass.kdb.v1;
 
 import java.io.UnsupportedEncodingException;
 
-import org.sperle.keepass.crypto.Cipher;
+import org.sperle.keepass.crypto.KdbCipher;
 import org.sperle.keepass.crypto.CryptoManager;
 import org.sperle.keepass.crypto.Hash;
 import org.sperle.keepass.crypto.KeePassCryptoException;
@@ -38,11 +38,11 @@ import org.sperle.keepass.monitor.ProgressMonitor;
 public class KeePassDatabaseAESCryptoAlgorithmV1 implements KeePassDatabaseCryptoAlgorithm {
 
     private Hash sha256;
-    private Cipher aes;
+    private KdbCipher aes;
 
     public KeePassDatabaseAESCryptoAlgorithmV1(CryptoManager cryptoManager) {
         sha256 = cryptoManager.getHash("SHA256");
-        aes = cryptoManager.getCipher("AES");
+        aes = cryptoManager.getKdbCipher("AES");
 
         if (sha256 == null || aes == null) {
             throw new IllegalStateException("SHA-256/AES not supported");

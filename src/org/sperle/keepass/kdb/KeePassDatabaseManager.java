@@ -36,22 +36,24 @@ public interface KeePassDatabaseManager {
      * @param name the name of the new database
      * @param masterPassword key for encryption
      * @param keyFileName path/name of key file for encryption
+     * @param usePasswordEncryption set to true, if password/keyfile memory encryption should be used
      * @throws IOException if key file can not be loaded
      */
-    KeePassDatabase create(String name, String masterPassword, String keyFileName) throws IOException;
+    KeePassDatabase create(String name, String masterPassword, String keyFileName, boolean usePasswordEncryption) throws IOException;
     
     /**
      * Loads(+decrypts) a KeePass database.
      * @param fileName path/name of the database file
      * @param masterPassword key for decryption
      * @param keyFileName path/name of key file for decryption
+     * @param usePasswordEncryption set to true, if password/keyfile memory encryption should be used
      * @param pm the progress monitor to monitor loading process, can be null
      * @return KeePass database object
      * @throws IOException if file can not be loaded
      * @throws KeePassCryptoException if database can not be decrypted
      * @throws KeePassDatabaseException if database is invalid
      */
-    KeePassDatabase load(String fileName, String masterPassword, String keyFileName, ProgressMonitor pm) throws IOException, KeePassCryptoException, KeePassDatabaseException;
+    KeePassDatabase load(String fileName, String masterPassword, String keyFileName, boolean usePasswordEncryption, ProgressMonitor pm) throws IOException, KeePassCryptoException, KeePassDatabaseException;
 
     /**
      * Registers a crypto algorithm that knows how to encrypt/decrypt certain kind of KeePass databases.

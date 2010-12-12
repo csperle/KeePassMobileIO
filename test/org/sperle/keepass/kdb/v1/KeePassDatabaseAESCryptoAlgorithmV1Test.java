@@ -31,7 +31,7 @@ public class KeePassDatabaseAESCryptoAlgorithmV1Test extends KeePassMobileIOTest
     public void setUp() throws Exception {
 	CryptoManager cm = new CryptoManager();
 	cm.addHash(new SHA256Hash());
-	cm.addCipher(new AESCipher());
+	cm.addKdbCipher(new AESCipher());
 	aes = new KeePassDatabaseAESCryptoAlgorithmV1(cm);
     }
 

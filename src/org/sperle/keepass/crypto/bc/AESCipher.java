@@ -26,15 +26,15 @@ import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
-import org.sperle.keepass.crypto.Cipher;
+import org.sperle.keepass.crypto.KdbCipher;
 import org.sperle.keepass.crypto.KeePassCryptoException;
 import org.sperle.keepass.monitor.ProgressMonitor;
 import org.sperle.keepass.util.ByteArrays;
 
 /**
- * The AES (Rijndael) cipher using bouncy castle.
+ * The AES (Rijndael) cipher using bouncy castle to encrypt/decrypt the KeePassDB.
  */
-public final class AESCipher implements Cipher {
+public final class AESCipher implements KdbCipher {
     public static final String NAME = "AES";
 
     public String getName() {
@@ -81,7 +81,7 @@ public final class AESCipher implements Cipher {
 	    if(padding) cipher.doFinal(cipherText, outLength);
 	    return cipherText;
 	} catch (Exception e) {
-	    throw new KeePassCryptoException("Exception during kdb encryption: " + e.getMessage());
+	    throw new KeePassCryptoException("Exception during AES encryption: " + e.getMessage());
 	}
     }
     
@@ -97,7 +97,7 @@ public final class AESCipher implements Cipher {
 	    outLength += cipher.doFinal(plainText, outLength);
 	    return (outLength < plainText.length) ? ByteArrays.cut(plainText, outLength) : plainText;
 	} catch (Exception e) {
-	    throw new KeePassCryptoException("Exception during kdb decryption: " + e.getMessage());
+	    throw new KeePassCryptoException("Exception during AES decryption: " + e.getMessage());
 	}
     }
 }

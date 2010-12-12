@@ -22,6 +22,7 @@ package org.sperle.keepass.kdb.v1;
 
 import java.util.Vector;
 
+import org.sperle.keepass.crypto.PasswordCipher;
 import org.sperle.keepass.kdb.AbstractKeePassDatabase;
 import org.sperle.keepass.kdb.KdbEntry;
 import org.sperle.keepass.kdb.KdbGroup;
@@ -62,22 +63,36 @@ public final class KeePassDatabaseV1 extends AbstractKeePassDatabase {
     private byte[] masterSeed2 = new byte[32]; // init: none; change: random
     private int numKeyEncRounds; // init: DEFAULT_NUMKEYENCROUNDS; change: never (user choice)
     
+    // master password & key file
+    protected static final int PASSWORDKEY_LENGTH = 92;
+    private transient byte[] masterPasswordEncrypted;
+    private transient String masterPasswordPlain;
+    private transient byte[] keyFileEncrypted;
+    private transient byte[] keyFilePlain;
+    private transient byte[] passwordKey; 
+    
     // content
     private Vector groups = new Vector();
     private Vector entries = new Vector();
     
     // object graph
     private transient Random rand;
+    private transient PasswordCipher cipher;
     private transient PerformanceStatistics performanceStatistics;
     
     // used for testing
     protected KeePassDatabaseV1(Random rand) {
-        this(rand, null, null, null);
+        this(rand, null, null, null, null);
     }
     
-    public KeePassDatabaseV1(Random rand, String fileName, String masterPassword, byte[] keyFile) {
-        super(fileName, masterPassword, keyFile);
+    public KeePassDatabaseV1(Random rand, PasswordCipher cipher, String fileName, String masterPassword, byte[] keyFile) {
+        super(fileName);
         this.rand = rand;
+        this.cipher = cipher;
+        this.passwordKey = (cipher != null && rand != null ? rand.nextBytes(PASSWORDKEY_LENGTH) : null);
+        setMasterPassword(masterPassword);
+        setKeyFile(keyFile);
+        this.changed = false;
     }
     
     protected void init() {
@@ -149,6 +164,74 @@ public final class KeePassDatabaseV1 extends AbstractKeePassDatabase {
         ByteArrays.copyCompletelyTo(masterSeed2, header, 88);
         BinaryData.fromInt(numKeyEncRounds, header, 120);
         return header;
+    }
+    
+    public String getMasterPassword() {
+        if(usePasswordEncryption()) {
+            return this.masterPasswordEncrypted != null ? new String(cipher.decrypt(passwordKey, this.masterPasswordEncrypted)).trim() : null;
+        } else {
+            return this.masterPasswordPlain;
+        }
+    }
+
+    public void setMasterPassword(String masterPassword) {
+        if(usePasswordEncryption()) {
+            this.masterPasswordEncrypted = (masterPassword != null ? cipher.encrypt(passwordKey, masterPassword.getBytes()) : null);
+        } else {
+            this.masterPasswordPlain = masterPassword;
+        }
+        this.changed = true;
+    }
+    
+    // for tests only
+    byte[] getMasterPasswordEncrypted() {
+        return masterPasswordEncrypted;
+    }
+
+    // for tests only
+    String getMasterPasswordPlain() {
+        return masterPasswordPlain;
+    }
+    
+    public byte[] getKeyFile() {
+        if(usePasswordEncryption()) {
+            return this.keyFileEncrypted != null ? cipher.decrypt(passwordKey, this.keyFileEncrypted) : null;
+        } else {
+            return this.keyFilePlain;
+        }
+    }
+
+    public boolean hasKeyFile() {
+        return this.keyFileEncrypted != null || this.keyFilePlain != null;
+    }
+    
+    public void removeKeyFile() {
+        this.keyFileEncrypted = null;
+        this.keyFilePlain = null;
+        this.changed = true;
+    }
+    
+    public void setKeyFile(byte[] keyFile) {
+        if(usePasswordEncryption()) {
+            this.keyFileEncrypted = (keyFile != null ? cipher.encrypt(passwordKey, keyFile) : null);
+        } else {
+            this.keyFilePlain = keyFile;
+        }
+        this.changed = true;
+    }
+    
+    // for tests only
+    byte[] getKeyFileEncrypted() {
+        return keyFileEncrypted;
+    }
+    
+    // for tests only
+    byte[] getKeyFilePlain() {
+        return keyFilePlain;
+    }
+    
+    private boolean usePasswordEncryption() {
+        return cipher != null && passwordKey != null;
     }
     
     protected byte[] getEncryptedContent(byte[] data) {
@@ -298,8 +381,8 @@ public final class KeePassDatabaseV1 extends AbstractKeePassDatabase {
             else insertAtIndex = groups.indexOf(childGroups.lastElement()) + 1;
             groups.insertElementAt(group, insertAtIndex);
         }
-        numGroups++;
-        changed = true;
+        this.numGroups++;
+        this.changed = true;
     }
     
     public void removeGroup(KdbGroup group) {
@@ -311,8 +394,8 @@ public final class KeePassDatabaseV1 extends AbstractKeePassDatabase {
         }
         
         groups.removeElement(group);
-        numGroups--;
-        changed = true;
+        this.numGroups--;
+        this.changed = true;
     }
     
     private boolean existsGroupWithId(int id) {
@@ -335,7 +418,7 @@ public final class KeePassDatabaseV1 extends AbstractKeePassDatabase {
         
         byte[] id = rand.nextBytes(16);
         while(existsEntryWithId(id)) id = rand.nextBytes(16);
-        KdbEntryV1 entry = new KdbEntryV1(id, parent);
+        KdbEntryV1 entry = new KdbEntryV1(rand, cipher, id, parent);
         addEntry(entry, parent);
         return entry;
     }
@@ -380,5 +463,13 @@ public final class KeePassDatabaseV1 extends AbstractKeePassDatabase {
         if(backupGroup == null) return;
         KdbEntryV1 backupEntry = (KdbEntryV1) createEntry(backupGroup);
         backupEntry.copyValuesFrom((KdbEntryV1) entry);
+    }
+
+    public void close() {
+        super.close();        
+        this.masterPasswordEncrypted = null;
+        this.masterPasswordPlain = null;
+        this.keyFileEncrypted = null;
+        this.keyFilePlain = null;
     }
 }

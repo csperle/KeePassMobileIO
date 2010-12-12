@@ -24,14 +24,15 @@ import java.util.Hashtable;
 
 /**
  * The crypto manager manages the hash and cipher algorithms that are supported
- * on this KeePassIO distribution. Dev: CryptoManager works implementation
+ * by this KeePassIO distribution. Dev: CryptoManager works implementation
  * independent and therefore does not need an interface.
  */
 public class CryptoManager {
 
     private Hashtable hashs = new Hashtable();
-    private Hashtable ciphers = new Hashtable();
-
+    private Hashtable kdbCiphers = new Hashtable();
+    private Hashtable passwordCiphers = new Hashtable();
+    
     /**
      * Add a supported hash algorithm.
      */
@@ -47,16 +48,30 @@ public class CryptoManager {
     }
 
     /**
-     * Add a supported cipher algorithm.
+     * Add a supported KeePassDB cipher algorithm.
      */
-    public void addCipher(Cipher cipher) {
-        ciphers.put(cipher.getName(), cipher);
+    public void addKdbCipher(KdbCipher kdbCipher) {
+        kdbCiphers.put(kdbCipher.getName(), kdbCipher);
     }
 
     /**
-     * Returns a supported cipher algorithm by name.
+     * Returns a supported KeePassDB cipher algorithm by name.
      */
-    public Cipher getCipher(String name) {
-        return (Cipher)ciphers.get(name);
+    public KdbCipher getKdbCipher(String name) {
+        return (KdbCipher)kdbCiphers.get(name);
+    }
+    
+    /**
+     * Add a supported password cipher algorithm.
+     */
+    public void addPasswordCipher(PasswordCipher passwordCipher) {
+        passwordCiphers.put(passwordCipher.getName(), passwordCipher);
+    }
+
+    /**
+     * Returns a supported password cipher algorithm by name.
+     */
+    public PasswordCipher getPasswordCipher(String name) {
+        return (PasswordCipher)passwordCiphers.get(name);
     }
 }

@@ -1,6 +1,9 @@
 package org.sperle.keepass.kdb.v1;
 
+import org.bouncycastle.util.encoders.Hex;
 import org.sperle.keepass.KeePassMobileIOTest;
+import org.sperle.keepass.TestRandom;
+import org.sperle.keepass.crypto.bc.RC4Cipher;
 import org.sperle.keepass.kdb.KdbChangeEvent;
 import org.sperle.keepass.kdb.KdbChangeListener;
 import org.sperle.keepass.kdb.KdbDate;
@@ -8,10 +11,12 @@ import org.sperle.keepass.util.BinaryData;
 import org.sperle.keepass.util.ByteArrays;
 
 public class KdbEntryV1Test extends KeePassMobileIOTest {
+    private static final String TEST_PASSWORD = "Täst $_% Passwörd!";
+    
     private KdbEntryV1 entry;
     
     public KdbEntryV1Test() {
-        super(18, "KdbEntryV1Test");
+        super(19, "KdbEntryV1Test");
     }
 
     public void test(int testNumber) throws Throwable {
@@ -32,8 +37,9 @@ public class KdbEntryV1Test extends KeePassMobileIOTest {
         case 13:testBinaryData();break;
         case 14:testGetPlainContentData();break;
         case 15:testCreation();break;
-        case 16:testIsInternal();break;
-        case 17:testEventSupport();break;
+        case 16:testCreationEncrypted();break;
+        case 17:testIsInternal();break;
+        case 18:testEventSupport();break;
         default:break;
         }
     }
@@ -179,9 +185,31 @@ public class KdbEntryV1Test extends KeePassMobileIOTest {
         group.setId(12);
         
         byte[] id = new byte[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-        KdbEntryV1 entry = new KdbEntryV1(id, group);
+        KdbEntryV1 entry = new KdbEntryV1(null, null, id, group);
         assertTrue(ByteArrays.equals(id, entry.getId()));
         assertEquals(12, entry.getGroupId());
+        
+        entry.setPassword(TEST_PASSWORD);
+        
+        assertNull(entry.getPasswordEncrypted());
+        assertEquals(TEST_PASSWORD, entry.getPasswordPlain());
+        assertEquals(TEST_PASSWORD, entry.getPassword());
+    }
+    
+    public void testCreationEncrypted() throws Exception {
+        TestRandom rand = new TestRandom();
+        rand.setRandomInt(new int[KdbEntryV1.PASSWORDKEY_LENGTH]);
+
+        KdbGroupV1 group = new KdbGroupV1();
+        group.setId(12);
+        
+        byte[] id = new byte[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+        KdbEntryV1 entry = new KdbEntryV1(rand , new RC4Cipher(), id, group);
+        entry.setPassword(TEST_PASSWORD);
+        
+        assertNull(entry.getPasswordPlain());
+        assertNotEquals(TEST_PASSWORD, new String(Hex.encode(entry.getPasswordEncrypted())));
+        assertEquals(TEST_PASSWORD, entry.getPassword());
     }
     
     public void testIsInternal() {

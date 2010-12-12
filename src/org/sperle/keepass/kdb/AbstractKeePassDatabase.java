@@ -32,15 +32,12 @@ import org.sperle.keepass.util.ByteArrays;
  */
 public abstract class AbstractKeePassDatabase implements KeePassDatabase, KdbChangeListener {
     protected String fileName;
-    protected transient String masterPassword;
-    protected transient byte[] keyFile;
+    
     protected boolean changed = false;
     protected boolean hasNewBackupFlag = false;
     
-    public AbstractKeePassDatabase(String fileName, String masterPassword, byte[] keyFile) {
+    public AbstractKeePassDatabase(String fileName) {
         this.fileName = fileName;
-        this.masterPassword = masterPassword;
-        this.keyFile = keyFile;
     }
     
     public String getFileName() {
@@ -54,33 +51,6 @@ public abstract class AbstractKeePassDatabase implements KeePassDatabase, KdbCha
     public String getDatabaseName() {
         if(fileName.indexOf('/') < 0) return fileName;
         else return fileName.substring(fileName.lastIndexOf('/') + 1);
-    }
-    
-    public String getMasterPassword() {
-        return masterPassword;
-    }
-
-    public void setMasterPassword(String masterPassword) {
-        this.masterPassword = masterPassword;
-        changed = true;
-    }
-    
-    public byte[] getKeyFile() {
-        return keyFile;
-    }
-
-    public boolean hasKeyFile() {
-        return this.keyFile != null;
-    }
-    
-    public void removeKeyFile() {
-        this.keyFile = null;
-        changed = true;
-    }
-    
-    public void setKeyFile(byte[] keyFile) {
-        this.keyFile = keyFile;
-        changed = true;
     }
     
     /**
@@ -120,8 +90,6 @@ public abstract class AbstractKeePassDatabase implements KeePassDatabase, KdbCha
     }
     
     public void close() {
-        this.masterPassword = null;
-        this.keyFile = null;
         getEntries().removeAllElements();
         getGroups().removeAllElements();
     }
