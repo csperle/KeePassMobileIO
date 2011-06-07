@@ -90,7 +90,15 @@ public abstract class AbstractKeePassDatabase implements KeePassDatabase, KdbCha
     }
     
     public void close() {
+        for(int i = 0; i < getEntries().size(); i++) {
+            KdbEntry entry = (KdbEntry) getEntries().elementAt(i);
+            entry.close();
+        }
         getEntries().removeAllElements();
+        for(int i = 0; i < getGroups().size(); i++) {
+            KdbGroup group = (KdbGroup) getGroups().elementAt(i);
+            group.close();
+        }
         getGroups().removeAllElements();
     }
     

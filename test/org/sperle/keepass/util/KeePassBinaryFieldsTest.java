@@ -6,7 +6,7 @@ import org.sperle.keepass.kdb.KdbDate;
 public class KeePassBinaryFieldsTest extends KeePassMobileIOTest {
 
     public KeePassBinaryFieldsTest() {
-        super(8, "KeePassBinaryFieldsTest");
+        super(9, "KeePassBinaryFieldsTest");
     }
 
     public void test(int testNumber) throws Throwable {
@@ -14,11 +14,12 @@ public class KeePassBinaryFieldsTest extends KeePassMobileIOTest {
         case 0:testFromInt();break;
         case 1:testFromUnsignedShort();break;
         case 2:testFromString();break;
-        case 3:testFromDate();break;
-        case 4:testGroupTerminator();break;
-        case 5:testEntryTerminator();break;
-        case 6:testFromByteArray();break;
-        case 7:testFromCharArray();break;
+        case 3:testFromPassword();break;
+        case 4:testFromDate();break;
+        case 5:testGroupTerminator();break;
+        case 6:testEntryTerminator();break;
+        case 7:testFromByteArray();break;
+        case 8:testFromCharArray();break;
         default:break;
         }
     }
@@ -33,6 +34,10 @@ public class KeePassBinaryFieldsTest extends KeePassMobileIOTest {
     
     public void testFromString() {
         assertTrue(ByteArrays.equals(new byte[]{2, 0, 11, 0, 0, 0, 84, 101, 115, 116, 32, 71, 114, 111, 117, 112, 0}, KeePassBinaryFields.fromString(2, "Test Group")));
+    }
+    
+    public void testFromPassword() {
+        assertTrue(ByteArrays.equals(new byte[]{2, 0, 11, 0, 0, 0, 84, 101, 115, 116, 32, 71, 114, 111, 117, 112, 0}, KeePassBinaryFields.fromPassword(2, new byte[]{84, 101, 115, 116, 32, 71, 114, 111, 117, 112})));
     }
     
     public void testFromCharArray() {

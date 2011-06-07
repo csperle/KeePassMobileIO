@@ -100,4 +100,9 @@ public interface KdbGroup extends KdbItem {
      * Removes a change listener from this group.
      */
     void removeChangeListener(KdbChangeListener kdbChangeListener);
+    
+    /**
+     * Called when database is closed. Destroy all confidential data here.
+     */
+    void close();
 }

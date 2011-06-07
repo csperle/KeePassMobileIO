@@ -55,8 +55,9 @@ public class KeePassMobileIOFactory {
     }
 
     protected KeePassDatabaseManager createKeePassDatabaseManager() {
-        CryptoManager cm = createCryptoManager();
-	KeePassDatabaseManagerV1 kdbm = new KeePassDatabaseManagerV1(createIOManager(), cm, createCloseStrategy(), createRandom());
+        Random rand = createRandom();
+        CryptoManager cm = createCryptoManager(rand);
+        KeePassDatabaseManagerV1 kdbm = new KeePassDatabaseManagerV1(createIOManager(), cm, createCloseStrategy(), rand);
 	KeePassDatabaseCryptoAlgorithm[] cryptoAlgorithms = getKeePassDatabaseCryptoAlgorithms(cm);
 	for (int i = 0; i < cryptoAlgorithms.length; i++) {
     	    kdbm.registerCryptoAlgorithm(cryptoAlgorithms[i]);
@@ -81,10 +82,10 @@ public class KeePassMobileIOFactory {
         }
     }
     
-    protected CryptoManager createCryptoManager() {
+    protected CryptoManager createCryptoManager(Random rand) {
 	CryptoManager cm = new CryptoManager();
 	cm.addKdbCipher(new AESCipher());
-	cm.addPasswordCipher(new RC4Cipher());
+	cm.addPasswordCipher(new RC4Cipher(rand.nextBytes(RC4Cipher.KEY_LENGTH)));
 	cm.addHash(new SHA256Hash());
 	return cm;
     }

@@ -9,9 +9,10 @@ import org.sperle.keepass.kdb.KdbChangeListener;
 import org.sperle.keepass.kdb.KdbDate;
 import org.sperle.keepass.util.BinaryData;
 import org.sperle.keepass.util.ByteArrays;
+import org.sperle.keepass.util.Passwords;
 
 public class KdbEntryV1Test extends KeePassMobileIOTest {
-    private static final String TEST_PASSWORD = "Täst $_% Passwörd!";
+    private static final byte[] TEST_PASSWORD = Passwords.fromString("Täßt $_% Pásswörd!");
     
     private KdbEntryV1 entry;
     
@@ -45,7 +46,7 @@ public class KdbEntryV1Test extends KeePassMobileIOTest {
     }
 
     public void setUp() throws Exception {
-	entry = new KdbEntryV1();
+	entry = new KdbEntryV1(null);
     }
 
     public void testId() {
@@ -94,8 +95,8 @@ public class KdbEntryV1Test extends KeePassMobileIOTest {
     }
     
     public void testPassword() throws Exception {
-	entry.extract(constructEntyDataFromString(KdbEntryV1.FIELDTYPE_PASSWORD, "geheim"), 0);
-	assertEquals("geheim", entry.getPassword());
+	entry.extract(constructEntyDataFromPassword(KdbEntryV1.FIELDTYPE_PASSWORD, Passwords.fromString("geheim")), 0);
+	assertEquals("geheim", Passwords.toString(entry.getPassword()));
     }
     
     public void testNotes() throws Exception {
@@ -163,7 +164,7 @@ public class KdbEntryV1Test extends KeePassMobileIOTest {
     }
     
     public void testGetPlainContentData() throws Exception {
-        KdbEntryV1 entry = new KdbEntryV1();
+        KdbEntryV1 entry = new KdbEntryV1(null);
         entry.setId(new byte[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15});
         assertTrue(ByteArrays.equals(new byte[]{1, 0, 16, 0, 0, 0, 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15, -1, -1, 0, 0, 0, 0}, entry.getPlainContentData(true)));
         entry.setTitle("a1");
@@ -171,13 +172,20 @@ public class KdbEntryV1Test extends KeePassMobileIOTest {
     }
     
     private byte[] constructEntyDataFromString(int fieldtype, String s) {
-	int len = BinaryData.getLength(s);
-	byte[] entryData = new byte[8+len];
-	BinaryData.fromUnsignedShort(fieldtype, entryData, 0);
-	BinaryData.fromInt(len, entryData, 2);
-	ByteArrays.copyCompletelyTo(BinaryData.fromString(s), entryData, 6);
-	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_TERMINATOR, entryData, 6+len);
-	return entryData;
+        return constructEntyDataFromBinaryData(fieldtype, BinaryData.fromString(s));
+    }
+    
+    private byte[] constructEntyDataFromPassword(int fieldtype, byte[] p) {
+        return constructEntyDataFromBinaryData(fieldtype, BinaryData.fromPassword(p));
+    }
+    
+    private byte[] constructEntyDataFromBinaryData(int fieldtype, byte[] data) {
+        byte[] entryData = new byte[8+data.length];
+        BinaryData.fromUnsignedShort(fieldtype, entryData, 0);
+        BinaryData.fromInt(data.length, entryData, 2);
+        ByteArrays.copyCompletelyTo(data, entryData, 6);
+        BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_TERMINATOR, entryData, 6+data.length);
+        return entryData;
     }
     
     public void testCreation() throws Exception {
@@ -185,31 +193,30 @@ public class KdbEntryV1Test extends KeePassMobileIOTest {
         group.setId(12);
         
         byte[] id = new byte[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-        KdbEntryV1 entry = new KdbEntryV1(null, null, id, group);
+        KdbEntryV1 entry = new KdbEntryV1(null, id, group);
         assertTrue(ByteArrays.equals(id, entry.getId()));
         assertEquals(12, entry.getGroupId());
         
         entry.setPassword(TEST_PASSWORD);
         
         assertNull(entry.getPasswordEncrypted());
-        assertEquals(TEST_PASSWORD, entry.getPasswordPlain());
-        assertEquals(TEST_PASSWORD, entry.getPassword());
+        assertTrue(ByteArrays.equals(TEST_PASSWORD, entry.getPasswordPlain()));
+        assertTrue(ByteArrays.equals(TEST_PASSWORD, entry.getPassword()));
     }
     
     public void testCreationEncrypted() throws Exception {
-        TestRandom rand = new TestRandom();
-        rand.setRandomInt(new int[KdbEntryV1.PASSWORDKEY_LENGTH]);
-
+        byte[] TEST_KEY = new byte[] {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39};
+        
         KdbGroupV1 group = new KdbGroupV1();
         group.setId(12);
         
         byte[] id = new byte[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-        KdbEntryV1 entry = new KdbEntryV1(rand , new RC4Cipher(), id, group);
+        KdbEntryV1 entry = new KdbEntryV1(new RC4Cipher(TEST_KEY), id, group);
         entry.setPassword(TEST_PASSWORD);
         
         assertNull(entry.getPasswordPlain());
-        assertNotEquals(TEST_PASSWORD, new String(Hex.encode(entry.getPasswordEncrypted())));
-        assertEquals(TEST_PASSWORD, entry.getPassword());
+        assertFalse(ByteArrays.equals(TEST_PASSWORD, entry.getPasswordEncrypted()));
+        assertTrue(ByteArrays.equals(TEST_PASSWORD, entry.getPassword()));
     }
     
     public void testIsInternal() {
@@ -218,7 +225,7 @@ public class KdbEntryV1Test extends KeePassMobileIOTest {
         assertFalse(entry.isInternal());
         entry.setUsername("SYSTEM");
         assertFalse(entry.isInternal());
-        entry.setPassword("");
+        entry.setPassword(Passwords.EMPTY_PASSWORD);
         assertFalse(entry.isInternal());
         entry.setUrl("$");
         assertTrue(entry.isInternal());

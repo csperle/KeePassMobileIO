@@ -68,6 +68,16 @@ public class KeePassBinaryFields {
     }
     
     /**
+     * Converts a password byte array into a KeePass binary field array.
+     */
+    public static byte[] fromPassword(int type, byte[] value) {
+        byte[] field = new byte[6];
+        BinaryData.fromUnsignedShort(type, field, 0);
+        BinaryData.fromInt(value.length + 1, field, 2); // + 1 -> with String terminator
+        return ByteArrays.append(field, BinaryData.fromPassword(value));
+    }
+    
+    /**
      * Converts a char array into a KeePass binary field array.
      */
     public static byte[] fromCharArray(int type, char[] value) {

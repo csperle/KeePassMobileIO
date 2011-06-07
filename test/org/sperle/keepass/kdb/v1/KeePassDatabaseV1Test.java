@@ -7,6 +7,7 @@ import org.sperle.keepass.kdb.KdbGroup;
 import org.sperle.keepass.kdb.KeePassDatabaseException;
 import org.sperle.keepass.util.BinaryData;
 import org.sperle.keepass.util.ByteArrays;
+import org.sperle.keepass.util.Passwords;
 
 public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
     private KeePassDatabaseV1 kdb;
@@ -361,7 +362,7 @@ public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
         root.setId(9);
         kdb.addGroup(root, null);
         
-        KdbEntryV1 entry = new KdbEntryV1();
+        KdbEntryV1 entry = new KdbEntryV1(null);
         entry.setId(new byte[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15});
         kdb.addEntry(entry, root);
         
@@ -401,7 +402,7 @@ public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
         KdbGroupV1 group = new KdbGroupV1();
         group.setId(15);
         kdb.addGroup(group, null);
-        KdbEntryV1 entry = new KdbEntryV1();
+        KdbEntryV1 entry = new KdbEntryV1(null);
         entry.setId(new byte[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15});
         kdb.addEntry(entry, group);
         assertTrue(ByteArrays.equals(new byte[]{1, 0, 4, 0, 0, 0, 15, 0, 0, 0, 8, 0, 2, 0, 0, 0, 0, 0, -1, -1, 0, 0, 0,
@@ -433,11 +434,11 @@ public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
         backup.setId(2);
         backup.setName("Backup");
         kdb.addGroup(backup, null);
-        KdbEntryV1 entry = new KdbEntryV1();
+        KdbEntryV1 entry = new KdbEntryV1(null);
         entry.setId(new byte[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15});
         entry.setTitle("Test Entry");
         entry.setUsername("Test User");
-        entry.setPassword("Test Passwd");
+        entry.setPassword(Passwords.fromString("Test Passwd"));
         entry.setUrl("Test URL");
         entry.setNotes("Test Notes");
         kdb.addEntry(entry, general);
@@ -452,7 +453,7 @@ public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
         assertFalse(ByteArrays.equals(entry.getId(), backupEntry.getId()));
         assertEquals("Test Entry", backupEntry.getTitle());
         assertEquals("Test User", backupEntry.getUsername());
-        assertEquals("Test Passwd", backupEntry.getPassword());
+        assertEquals("Test Passwd", Passwords.toString(backupEntry.getPassword()));
         assertEquals("Test URL", backupEntry.getUrl());
         assertEquals("Test Notes", backupEntry.getNotes());
     }
@@ -471,7 +472,7 @@ public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
         toGroup.setName("General");
         kdb.addGroup(toGroup, null);
         
-        KdbEntryV1 entry = new KdbEntryV1();
+        KdbEntryV1 entry = new KdbEntryV1(null);
         entry.setId(new byte[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15});
         kdb.addEntry(entry, fromGroup);
         

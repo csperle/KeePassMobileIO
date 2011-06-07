@@ -9,9 +9,10 @@ import org.sperle.keepass.kdb.KeePassDatabaseException;
 import org.sperle.keepass.kdb.PerformanceStatistics;
 import org.sperle.keepass.util.BinaryData;
 import org.sperle.keepass.util.ByteArrays;
+import org.sperle.keepass.util.Passwords;
 
 public class KeePassDatabaseAESCryptoAlgorithmV1Test extends KeePassMobileIOTest {
-    private static final String MASTER_PASSWORD = "TestMasterPassword";
+    private static final byte[] MASTER_PASSWORD = Passwords.getEncodedMasterPassword("TestMasterPassword");
     
     private KeePassDatabaseAESCryptoAlgorithmV1 aes;
     
@@ -64,7 +65,7 @@ public class KeePassDatabaseAESCryptoAlgorithmV1Test extends KeePassMobileIOTest
 	KdbGroupV1 root = new KdbGroupV1();
 	root.setId(1);
         kdb.addGroup(root, null);
-	KdbEntryV1 entry = new KdbEntryV1();
+	KdbEntryV1 entry = new KdbEntryV1(null);
 	entry.setId(new byte[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15});
 	kdb.addEntry(entry, root);
 	

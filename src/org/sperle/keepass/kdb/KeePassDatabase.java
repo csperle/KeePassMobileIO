@@ -52,7 +52,7 @@ public interface KeePassDatabase {
     /**
      * Sets new master password for this database.
      */
-    void setMasterPassword(String masterPassword);
+    void setMasterPassword(byte[] masterPassword);
     
     /**
      * Returns true, if database uses a key file for encryption.

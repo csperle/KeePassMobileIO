@@ -6,7 +6,7 @@ import org.sperle.keepass.KeePassMobileIOTest;
 public class ByteArraysTest extends KeePassMobileIOTest {
 
     public ByteArraysTest() {
-        super(7, "ByteArraysTest");
+        super(8, "ByteArraysTest");
     }
 
     public void test(int testNumber) throws Throwable {
@@ -18,6 +18,7 @@ public class ByteArraysTest extends KeePassMobileIOTest {
         case 4:testAppend();break;
         case 5:testAppendSection();break;
         case 6:testCut();break;
+        case 7:testFillCompletelyWith();break;
         default:break;
         }
     }
@@ -88,5 +89,14 @@ public class ByteArraysTest extends KeePassMobileIOTest {
             assertTrue(ByteArrays.equals(new byte[] {1,2,3,4}, ByteArrays.append(new byte[] {1,2}, new byte[] {3,4}, 1, 2)));
             fail("Should fail with IllegalArgumentException");
         } catch (IllegalArgumentException e) {}
+    }
+    
+    public void testFillCompletelyWith() {
+        byte[] target = null;
+        ByteArrays.fillCompletelyWith(target, (byte)99);
+        assertNull(target);
+        target = new byte[] {1,2,3,4};
+        ByteArrays.fillCompletelyWith(target, (byte)99);
+        assertTrue(ByteArrays.equals(new byte[] {99,99,99,99}, target));
     }
 }

@@ -60,8 +60,7 @@ public class KdbGroupV1 implements KdbGroup, org.sperle.keepass.util.Comparable 
     private int treeLevel = -1;  // system
     private int internalFlags = -1; // system
     
-    // transparent
-    private Vector changeListeners = new Vector();
+    private transient Vector changeListeners = new Vector();
     
     // for loading and testing
     protected KdbGroupV1() {
@@ -274,6 +273,9 @@ public class KdbGroupV1 implements KdbGroup, org.sperle.keepass.util.Comparable 
         this.changeListeners.addElement(kdbChangeListener);
     }
 
+    public void close() {
+    }
+    
     private void fireBeforeChange() {
         for (int i = 0; i < changeListeners.size(); i++) {
             ((KdbChangeListener)changeListeners.elementAt(i)).beforeChange(new KdbChangeEvent(this));

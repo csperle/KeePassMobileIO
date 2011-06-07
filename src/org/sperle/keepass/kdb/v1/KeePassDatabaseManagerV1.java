@@ -40,6 +40,7 @@ import org.sperle.keepass.monitor.ProgressMonitor;
 import org.sperle.keepass.rand.Random;
 import org.sperle.keepass.util.BinaryData;
 import org.sperle.keepass.util.ByteArrays;
+import org.sperle.keepass.util.Passwords;
 
 /**
  * This KeePass database manager loads and saves V1 databases.
@@ -65,7 +66,8 @@ public class KeePassDatabaseManagerV1 implements KeePassDatabaseManager {
             keyFile = loadKeyFile(keyFileName);
         }
         
-        KeePassDatabaseV1 kdb = new KeePassDatabaseV1(rand, usePasswordEncryption ? cryptoManager.getPasswordCipher(RC4Cipher.NAME) : null, name, masterPassword, keyFile);
+        KeePassDatabaseV1 kdb = new KeePassDatabaseV1(rand, cryptoManager.getPasswordCipher(RC4Cipher.NAME),
+                usePasswordEncryption, name, Passwords.getEncodedMasterPassword(masterPassword), keyFile);
         kdb.init();
         return kdb;
     }
@@ -87,7 +89,8 @@ public class KeePassDatabaseManagerV1 implements KeePassDatabaseManager {
 	if(data == null) return null; // user canceled
 	ps.setLoadTime(System.currentTimeMillis() - start);
 	
-	KeePassDatabaseV1 kdb = new KeePassDatabaseV1(rand, usePasswordEncryption ? cryptoManager.getPasswordCipher(RC4Cipher.NAME) : null, fileName, masterPassword, keyFile);
+	KeePassDatabaseV1 kdb = new KeePassDatabaseV1(rand, cryptoManager.getPasswordCipher(RC4Cipher.NAME),
+	        usePasswordEncryption, fileName, Passwords.getEncodedMasterPassword(masterPassword), keyFile);
 	kdb.extractHeader(data);
 	kdb.verifyHeader();
 	
@@ -97,7 +100,7 @@ public class KeePassDatabaseManagerV1 implements KeePassDatabaseManager {
 	ps.setEncryptedContentDataLength(encryptedContentData.length);
 	
 	byte[] plainContentData = cryptoAlgorithmToUse.decrypt(encryptedContentData, kdb.getMasterSeed(), 
-		kdb.getMasterSeed2(), kdb.getNumKeyEncRounds(), kdb.getEncryptionIV(), masterPassword, keyFile, ps, pm);
+		kdb.getMasterSeed2(), kdb.getNumKeyEncRounds(), kdb.getEncryptionIV(), Passwords.getEncodedMasterPassword(masterPassword), keyFile, ps, pm);
 	if(plainContentData == null) return null; // user canceled
 	ps.setPlainContentDataLength(plainContentData.length);
 	

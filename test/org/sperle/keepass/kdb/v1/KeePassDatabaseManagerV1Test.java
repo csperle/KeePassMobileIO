@@ -13,6 +13,7 @@ import org.sperle.keepass.kdb.DoNothingOnCloseStrategy;
 import org.sperle.keepass.kdb.KdbGroup;
 import org.sperle.keepass.kdb.KeePassDatabase;
 import org.sperle.keepass.util.ByteArrays;
+import org.sperle.keepass.util.Passwords;
 
 
 public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
@@ -43,7 +44,7 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
     private KeePassDatabaseManagerV1 dm;
     
     public KeePassDatabaseManagerV1Test() {
-        super(12, "KeePassDatabaseManagerV1Test");
+        super(11, "KeePassDatabaseManagerV1Test");
     }
 
     public void test(int testNumber) throws Throwable {
@@ -55,12 +56,11 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
         // TODO test save algorithm with key file:
         case 4:testLoadKeyFile64();break;
         case 5:testLoadKeyFile32();break;
-        case 6:testLoadKeyFile32Encrypted();break;
-        case 7:testLoadKeyFilePng();break;
-        case 8:testLoadPassKeyFilePng();break;
-        case 9:testChangeKeyEncRounds();break;
-        case 10:testChangePassword();break;
-        case 11:testAddRemoveGroup();break;
+        case 6:testLoadKeyFilePng();break;
+        case 7:testLoadPassKeyFilePng();break;
+        case 8:testChangeKeyEncRounds();break;
+        case 9:testChangePassword();break;
+        case 10:testAddRemoveGroup();break;
         default:break;
         }
     }
@@ -69,7 +69,7 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
 	CryptoManager cm = new CryptoManager();
 	cm.addHash(new SHA256Hash());
 	cm.addKdbCipher(new AESCipher());
-	cm.addPasswordCipher(new RC4Cipher());
+	cm.addPasswordCipher(new RC4Cipher(TEST1_PASSWORD.getBytes()));
 	fileManager = new TestIOManager();
 	rand = new TestRandom();
 	dm = new KeePassDatabaseManagerV1(fileManager, cm, new DoNothingOnCloseStrategy(), rand);
@@ -80,9 +80,9 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
 	KeePassDatabaseV1 db = (KeePassDatabaseV1)dm.load(TEST1_DB, TEST1_PASSWORD, null, false, null);
 	
 	assertFalse(db.hasChanged());
-	assertNull(db.getMasterPasswordEncrypted());
-        assertEquals(TEST1_PASSWORD, db.getMasterPasswordPlain());
-        assertEquals(TEST1_PASSWORD, db.getMasterPassword());
+	
+	assertFalse(ByteArrays.equals(Passwords.getEncodedMasterPassword(TEST1_PASSWORD), db.getMasterPasswordEncrypted()));
+        assertTrue(ByteArrays.equals(Passwords.getEncodedMasterPassword(TEST1_PASSWORD), db.getMasterPassword()));
         
 	assertTrue(db.getAlgorithm().isSha2());
 	assertTrue(db.getAlgorithm().isAes());
@@ -99,9 +99,13 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
 	assertEquals(2116301545, ((KdbGroupV1)db.getGroups().elementAt(0)).getId());
 	assertEquals("General", ((KdbGroupV1)db.getGroups().elementAt(0)).getName());
 	
-	assertEquals("Test Umlaute", ((KdbEntryV1)db.getEntries().elementAt(2)).getTitle());
-	assertEquals("ÖÄÜöäüß", ((KdbEntryV1)db.getEntries().elementAt(2)).getUsername());
-	assertEquals("_@!\"§$%&/()[]=*\\n", ((KdbEntryV1)db.getEntries().elementAt(2)).getPassword());
+	KdbEntryV1 entry = (KdbEntryV1)db.getEntries().elementAt(2);
+        assertEquals("Test Umlaute", entry.getTitle());
+	assertEquals("ÖÄÜöäüß", entry.getUsername());
+	
+	assertNull(entry.getPasswordEncrypted());
+        assertTrue(ByteArrays.equals(Passwords.fromString("_@!\"§$%&/()[]=*\\n"), entry.getPasswordPlain()));
+        assertEquals("_@!\"§$%&/()[]=*\\n", Passwords.toString(entry.getPassword()));
 	
 	assertEquals(2448, db.getPerformanceStatistics().getEncryptedContentDataLength());
 	assertEquals(2434, db.getPerformanceStatistics().getPlainContentDataLength());
@@ -110,12 +114,12 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
     }
     
     public void testLoadPasswordEncrypted() throws Exception {
-        rand.setRandomInt(new int[KeePassDatabaseV1.PASSWORDKEY_LENGTH]);
         KeePassDatabaseV1 db = (KeePassDatabaseV1)dm.load(TEST1_DB, TEST1_PASSWORD, null, true, null);
         
-        assertNull(db.getMasterPasswordPlain());
-        assertNotEquals(TEST1_PASSWORD, new String(Hex.encode(db.getMasterPasswordEncrypted())));
-        assertEquals(TEST1_PASSWORD, db.getMasterPassword());
+        KdbEntryV1 entry = (KdbEntryV1)db.getEntries().elementAt(2);
+        assertNull(entry.getPasswordPlain());
+        assertFalse(ByteArrays.equals(Passwords.fromString("_@!\"§$%&/()[]=*\\n"),entry.getPasswordEncrypted()));
+        assertEquals("_@!\"§$%&/()[]=*\\n", Passwords.toString(entry.getPassword()));
     }
     
     public void testLoadKeyFile64() throws Exception {
@@ -124,33 +128,28 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
         assertEquals(8, db.getNumGroups());
         assertEquals(5, db.getNumEntries());
         assertEquals("General", ((KdbGroupV1)db.getGroups().elementAt(0)).getName());
-        assertEquals("Test Umlaute", ((KdbEntryV1)db.getEntries().elementAt(2)).getTitle());
-        assertEquals("ÖÄÜöäüß", ((KdbEntryV1)db.getEntries().elementAt(2)).getUsername());
-        assertEquals("_@!\"§$%&/()[]=*\\n", ((KdbEntryV1)db.getEntries().elementAt(2)).getPassword());
+        KdbEntryV1 entry = (KdbEntryV1)db.getEntries().elementAt(2);
+        assertEquals("Test Umlaute", entry.getTitle());
+        assertEquals("ÖÄÜöäüß", entry.getUsername());
+        assertNull(entry.getPasswordEncrypted());
+        assertEquals("_@!\"§$%&/()[]=*\\n", Passwords.toString(entry.getPasswordPlain()));
+        assertEquals("_@!\"§$%&/()[]=*\\n", Passwords.toString(entry.getPassword()));
     }
     
     public void testLoadKeyFile32() throws Exception {
         KeePassDatabaseV1 db = (KeePassDatabaseV1)dm.load(TEST3_DB, null, TEST3_KEYFILE, false, null);
         
-        assertNull(db.getKeyFileEncrypted());
-        assertTrue(ByteArrays.equals(TEST3_KEYFILE_CONTENT, db.getKeyFilePlain()));
+        assertNotNull(db.getKeyFileEncrypted());
+        assertFalse(ByteArrays.equals(TEST3_KEYFILE_CONTENT, db.getKeyFileEncrypted()));
         assertTrue(ByteArrays.equals(TEST3_KEYFILE_CONTENT, db.getKeyFile()));
         
         assertEquals(8, db.getNumGroups());
         assertEquals(5, db.getNumEntries());
         assertEquals("General", ((KdbGroupV1)db.getGroups().elementAt(0)).getName());
-        assertEquals("Test Umlaute", ((KdbEntryV1)db.getEntries().elementAt(2)).getTitle());
-        assertEquals("ÖÄÜöäüß", ((KdbEntryV1)db.getEntries().elementAt(2)).getUsername());
-        assertEquals("_@!\"§$%&/()[]=*\\n", ((KdbEntryV1)db.getEntries().elementAt(2)).getPassword());
-    }
-    
-    public void testLoadKeyFile32Encrypted() throws Exception {
-        rand.setRandomInt(new int[KeePassDatabaseV1.PASSWORDKEY_LENGTH]);
-        KeePassDatabaseV1 db = (KeePassDatabaseV1)dm.load(TEST3_DB, null, TEST3_KEYFILE, true, null);
-        
-        assertNull(db.getKeyFilePlain());
-        assertFalse(ByteArrays.equals(TEST3_KEYFILE_CONTENT, db.getKeyFileEncrypted()));
-        assertTrue(ByteArrays.equals(TEST3_KEYFILE_CONTENT, db.getKeyFile()));
+        KdbEntryV1 entry = (KdbEntryV1)db.getEntries().elementAt(2);
+        assertEquals("Test Umlaute", entry.getTitle());
+        assertEquals("ÖÄÜöäüß", entry.getUsername());
+        assertEquals("_@!\"§$%&/()[]=*\\n", Passwords.toString(entry.getPassword()));
     }
     
     public void testLoadKeyFilePng() throws Exception {
@@ -159,9 +158,10 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
         assertEquals(8, db.getNumGroups());
         assertEquals(5, db.getNumEntries());
         assertEquals("General", ((KdbGroupV1)db.getGroups().elementAt(0)).getName());
-        assertEquals("Test Umlaute", ((KdbEntryV1)db.getEntries().elementAt(2)).getTitle());
-        assertEquals("ÖÄÜöäüß", ((KdbEntryV1)db.getEntries().elementAt(2)).getUsername());
-        assertEquals("_@!\"§$%&/()[]=*\\n", ((KdbEntryV1)db.getEntries().elementAt(2)).getPassword());
+        KdbEntryV1 entry = (KdbEntryV1)db.getEntries().elementAt(2);
+        assertEquals("Test Umlaute", entry.getTitle());
+        assertEquals("ÖÄÜöäüß", entry.getUsername());
+        assertEquals("_@!\"§$%&/()[]=*\\n", Passwords.toString(entry.getPassword()));
     }
     
     public void testLoadPassKeyFilePng() throws Exception {
@@ -170,9 +170,10 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
         assertEquals(8, db.getNumGroups());
         assertEquals(5, db.getNumEntries());
         assertEquals("General", ((KdbGroupV1)db.getGroups().elementAt(0)).getName());
-        assertEquals("Test Umlaute", ((KdbEntryV1)db.getEntries().elementAt(2)).getTitle());
-        assertEquals("ÖÄÜöäüß", ((KdbEntryV1)db.getEntries().elementAt(2)).getUsername());
-        assertEquals("_@!\"§$%&/()[]=*\\n", ((KdbEntryV1)db.getEntries().elementAt(2)).getPassword());
+        KdbEntryV1 entry = (KdbEntryV1)db.getEntries().elementAt(2);
+        assertEquals("Test Umlaute", entry.getTitle());
+        assertEquals("ÖÄÜöäüß", entry.getUsername());
+        assertEquals("_@!\"§$%&/()[]=*\\n", Passwords.toString(entry.getPassword()));
     }
     
     public void testSavePassword() throws Exception {
@@ -183,9 +184,7 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
     }
     
     public void testSavePasswordEncrypted() throws Exception {
-        rand.setRandomInt(new int[KeePassDatabaseV1.PASSWORDKEY_LENGTH]);
         KeePassDatabaseV1 db = (KeePassDatabaseV1)dm.load(TEST1_DB, TEST1_PASSWORD, null, true, null);
-        assertNull(db.getMasterPasswordPlain());
         dm.save(db, TEST1_SAVED, null, true);
         assertFalse(db.hasChanged());
         assertTrue(fileManager.equals(TEST1_DB, TEST1_SAVED));
@@ -203,7 +202,7 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
     
     public void testChangePassword() throws Exception {
         KeePassDatabase db = dm.load(TEST1_DB, TEST1_PASSWORD, null, false, null);
-        db.setMasterPassword("@!\"§$%&/()[]=*\\n ÖÄÜöäüß");
+        db.setMasterPassword(Passwords.getEncodedMasterPassword("@!\"§$%&/()[]=*\\n ÖÄÜöäüß"));
         assertTrue(db.hasChanged());
         dm.save(db, TEST1_SAVED, null, true);
         assertFalse(fileManager.equals(TEST1_DB, TEST1_SAVED));

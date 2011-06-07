@@ -20,11 +20,9 @@
 
 package org.sperle.keepass.kdb.v1;
 
-import java.io.UnsupportedEncodingException;
-
-import org.sperle.keepass.crypto.KdbCipher;
 import org.sperle.keepass.crypto.CryptoManager;
 import org.sperle.keepass.crypto.Hash;
+import org.sperle.keepass.crypto.KdbCipher;
 import org.sperle.keepass.crypto.KeePassCryptoException;
 import org.sperle.keepass.kdb.KeePassDatabase;
 import org.sperle.keepass.kdb.KeePassDatabaseCryptoAlgorithm;
@@ -63,7 +61,7 @@ public class KeePassDatabaseAESCryptoAlgorithmV1 implements KeePassDatabaseCrypt
     }
 
     public byte[] decrypt(byte[] encryptedContentData, byte[] masterSeed, byte[] masterSeed2, int numKeyEncRounds,
-            byte[] encryptionIV, String masterPassword, byte[] keyFile, PerformanceStatistics ps, ProgressMonitor pm) throws KeePassCryptoException {
+            byte[] encryptionIV, byte[] masterPassword, byte[] keyFile, PerformanceStatistics ps, ProgressMonitor pm) throws KeePassCryptoException {
         if (masterPassword == null && keyFile == null) {
             throw new IllegalArgumentException("master password and key file null");
         }
@@ -83,7 +81,7 @@ public class KeePassDatabaseAESCryptoAlgorithmV1 implements KeePassDatabaseCrypt
     }
 
     public byte[] encrypt(byte[] plainContentData, byte[] masterSeed, byte[] masterSeed2, int numKeyEncRounds,
-            byte[] encryptionIV, String masterPassword, byte[] keyFile, ProgressMonitor pm) throws KeePassCryptoException {
+            byte[] encryptionIV, byte[] masterPassword, byte[] keyFile, ProgressMonitor pm) throws KeePassCryptoException {
         if (masterPassword == null && keyFile == null) {
             throw new IllegalArgumentException("master password and key file null");
         }
@@ -96,39 +94,17 @@ public class KeePassDatabaseAESCryptoAlgorithmV1 implements KeePassDatabaseCrypt
         return aes.encrypt(masterKey, plainContentData, encryptionIV, 1, true, pm);
     }
 
-    private byte[] getPasswordKey(String masterPassword, byte[] keyFile) {
+    private byte[] getPasswordKey(byte[] masterPassword, byte[] keyFile) {
         byte[] passwordKey;
         if(keyFile == null) {
-            passwordKey = sha256.getHash(new byte[][] { getEncodedMasterPassword(masterPassword) }, null);
+            passwordKey = sha256.getHash(new byte[][] { masterPassword }, null);
         } else if(masterPassword == null) {
             passwordKey = keyFile;
         } else { // password + key file
-            passwordKey = sha256.getHash(new byte[][] { getEncodedMasterPassword(masterPassword) }, null);
+            passwordKey = sha256.getHash(new byte[][] { masterPassword }, null);
             passwordKey = sha256.getHash(new byte[][] { passwordKey, keyFile }, null);
         }
         return passwordKey;
-    }
-    
-    private byte[] getEncodedMasterPassword(String masterPassword) {
-        byte[] encMasterPassword = null;
-        try {
-            encMasterPassword = masterPassword.getBytes(getCorrectPasswordEncoding());
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace(); // Can only happen during development
-        }
-        return encMasterPassword;
-    }
-
-    /**
-     * Attention: password encoding is ISO-8859-(1-9) -> depending on the system.
-     * Dev problem (eg. when running the tests): Linux returns "UTF-8" as standard encoding!
-     */
-    private String getCorrectPasswordEncoding() {
-        String encoding = System.getProperty("microedition.encoding"); // get system encoding
-        if(encoding == null || !encoding.startsWith("ISO-8859")) {
-            encoding = "ISO-8859-1";
-        }
-        return encoding;
     }
     
     private byte[] encryptMasterKey(byte[] masterSeed, byte[] masterSeed2, int numKeyEncRounds, byte[] passwordKey, ProgressMonitor pm)

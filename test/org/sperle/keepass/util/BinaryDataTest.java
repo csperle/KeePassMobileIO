@@ -5,7 +5,7 @@ import org.sperle.keepass.KeePassMobileIOTest;
 public class BinaryDataTest extends KeePassMobileIOTest {
 
     public BinaryDataTest() {
-        super(9, "BinaryDataTest");
+        super(10, "BinaryDataTest");
     }
 
     public void test(int testNumber) throws Throwable {
@@ -17,8 +17,9 @@ public class BinaryDataTest extends KeePassMobileIOTest {
         case 4:testUnsignedShortNegative();break;
         case 5:testUnsignedShortOutOfRange();break;
         case 6:testString();break;
-        case 7:testUnsignedByte();break;
-        case 8:testCharArray();break;
+        case 7:testPassword();break;
+        case 8:testUnsignedByte();break;
+        case 9:testCharArray();break;
         default:break;
         }
     }
@@ -87,6 +88,14 @@ public class BinaryDataTest extends KeePassMobileIOTest {
 	assertTrue(ByteArrays.equals(new byte[]{84, 101, 115, 116, 32, 68, -61, -92, 116, 97, 33, 0}, BinaryData.fromString("Test Däta!")));
 	assertEquals("Test Däta!", BinaryData.toString(new byte[]{84, 101, 115, 116, 32, 68, -61, -92, 116, 97, 33, 0}, 0));
 	assertEquals(6, BinaryData.getStringLength(new byte[]{84, 101, 115, 116, 32, 68, -61, -92, 116, 97, 33, 0}, 5));
+    }
+    
+    public void testPassword() {
+        assertTrue(ByteArrays.equals(new byte[]{84, 101, 115, 116, 32, 68, -61, -92, 116, 97, 33}, BinaryData.toPassword(new byte[]{84, 101, 115, 116, 32, 68, -61, -92, 116, 97, 33, 0}, 0)));
+        assertTrue(ByteArrays.equals(new byte[]{84, 101, 115, 116, 32, 68, -61, -92, 116, 97, 33, 0}, BinaryData.fromPassword(new byte[]{84, 101, 115, 116, 32, 68, -61, -92, 116, 97, 33})));
+        
+        assertTrue(ByteArrays.equals(Passwords.EMPTY_PASSWORD, BinaryData.toPassword(new byte[]{0}, 0)));
+        assertTrue(ByteArrays.equals(new byte[]{0}, BinaryData.fromPassword(Passwords.EMPTY_PASSWORD)));
     }
     
     public void testCharArray() {

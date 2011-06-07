@@ -29,10 +29,10 @@ import org.sperle.keepass.kdb.KdbDate;
 import org.sperle.keepass.kdb.KdbEntry;
 import org.sperle.keepass.kdb.KdbGroup;
 import org.sperle.keepass.kdb.KeePassDatabase;
-import org.sperle.keepass.rand.Random;
 import org.sperle.keepass.util.BinaryData;
 import org.sperle.keepass.util.ByteArrays;
 import org.sperle.keepass.util.KeePassBinaryFields;
+import org.sperle.keepass.util.Passwords;
 
 /**
  * A KeePass database entry V1.
@@ -58,16 +58,14 @@ public class KdbEntryV1 implements KdbEntry, org.sperle.keepass.util.Comparable 
     protected static final int FIELDTYPE_SIZE = 2;
     protected static final int FIELDSIZE_SIZE = 4;
     
-    protected static final int PASSWORDKEY_LENGTH = 64;
-
     private byte id[]; // system
     private int groupId = -1; // system
     private int iconId = -1; // user
     private String title; // user
     private String url; // user
     private String username; // user
-    private byte[] passwordEncrypted; // user (used, if cipher != null && rand != null)
-    private String passwordPlain; // user (used, if cipher == null || rand == null)
+    private byte[] passwordEncrypted; // user (used, if passwordCipher != null)
+    private byte[] passwordPlain; // user (used, if passwordCipher == null)
     private String notes; // user
     private KdbDate creationTime; // system
     private KdbDate lastModificationTime; // system
@@ -76,17 +74,17 @@ public class KdbEntryV1 implements KdbEntry, org.sperle.keepass.util.Comparable 
     private String binaryDescription; // user
     private byte[] binaryData; // user
     
-    // transparent
-    private Vector changeListeners = new Vector();
+    private transient Vector changeListeners = new Vector();
     
-    private transient PasswordCipher cipher;
-    private transient byte[] passwordKey;
+    private transient PasswordCipher passwordCipher;
     
-    // for loading and testing
-    protected KdbEntryV1() {
+    protected KdbEntryV1(PasswordCipher passwordCipher) {
+        this.passwordCipher = passwordCipher;
     }
     
-    protected KdbEntryV1(Random rand, PasswordCipher cipher, byte[] id, KdbGroup parent) {
+    protected KdbEntryV1(PasswordCipher passwordCipher, byte[] id, KdbGroup parent) {
+        this(passwordCipher);
+        
         this.id = id;
         this.groupId = parent.getId();
         this.iconId = KeePassDatabase.DEFAULT_ENTRY_ICON;
@@ -103,9 +101,6 @@ public class KdbEntryV1 implements KdbEntry, org.sperle.keepass.util.Comparable 
         this.expirationTime = KdbDate.NEVER_EXPIRES;
         this.binaryDescription = null;
         this.binaryData = null;
-        
-        this.passwordKey = (cipher != null && rand != null ? rand.nextBytes(PASSWORDKEY_LENGTH) : null);
-        this.cipher = cipher;
     }
     
     // load
@@ -154,7 +149,7 @@ public class KdbEntryV1 implements KdbEntry, org.sperle.keepass.util.Comparable 
 	    this.username = BinaryData.toString(fieldData, dataOffset);
 	    break;
 	case FIELDTYPE_PASSWORD:
-	    setPassword(BinaryData.toString(fieldData, dataOffset));
+	    setPassword(BinaryData.toPassword(fieldData, dataOffset));
 	    break;
 	case FIELDTYPE_NOTES:
 	    this.notes = BinaryData.toString(fieldData, dataOffset);
@@ -193,7 +188,7 @@ public class KdbEntryV1 implements KdbEntry, org.sperle.keepass.util.Comparable 
         if(this.title != null) plainContentData = ByteArrays.append(plainContentData, KeePassBinaryFields.fromString(FIELDTYPE_TITLE, this.title));
         if(this.url != null) plainContentData = ByteArrays.append(plainContentData, KeePassBinaryFields.fromString(FIELDTYPE_URL, this.url));
         if(this.username != null) plainContentData = ByteArrays.append(plainContentData, KeePassBinaryFields.fromString(FIELDTYPE_USERNAME, this.username));
-        if(getPassword() != null) plainContentData = ByteArrays.append(plainContentData, KeePassBinaryFields.fromString(FIELDTYPE_PASSWORD, getPassword()));
+        if(getPassword() != null) plainContentData = ByteArrays.append(plainContentData, KeePassBinaryFields.fromPassword(FIELDTYPE_PASSWORD, getPassword()));
         if(this.notes != null) plainContentData = ByteArrays.append(plainContentData, KeePassBinaryFields.fromString(FIELDTYPE_NOTES, this.notes));
         if(this.creationTime != null) plainContentData = ByteArrays.append(plainContentData, KeePassBinaryFields.fromDate(FIELDTYPE_CREATIONTIME, this.creationTime));
         if(!forTest && this.lastModificationTime != null) plainContentData = ByteArrays.append(plainContentData, KeePassBinaryFields.fromDate(FIELDTYPE_LASTMODIFICATIONTIME, this.lastModificationTime));
@@ -285,19 +280,24 @@ public class KdbEntryV1 implements KdbEntry, org.sperle.keepass.util.Comparable 
 	return this.username;
     }
 
-    public void setPassword(String password) {
+    public void setPassword(byte[] password) {
         beforeChange();
-        if(usePasswordEncryption()) {
-            this.passwordEncrypted = (password != null ? cipher.encrypt(passwordKey, password.getBytes()) : null);
+        if(usePasswordEncryption() && !Passwords.isEmpty(password)) {
+// TODO remove DEBUG message
+System.out.println("ENcrypting password: " + Passwords.toString(password));
+            this.passwordEncrypted = password != null ? passwordCipher.encrypt(password) : null;
         } else {
             this.passwordPlain = password;
         }
 	afterChange();
     }
 
-    public String getPassword() {
-        if(usePasswordEncryption()) {
-            return this.passwordEncrypted != null ? new String(cipher.decrypt(passwordKey, this.passwordEncrypted)).trim() : null;
+    public byte[] getPassword() {
+        if(usePasswordEncryption() && !Passwords.isEmpty(this.passwordPlain)) {
+            byte[] decryptedPassword = this.passwordEncrypted != null ? passwordCipher.decrypt(this.passwordEncrypted) : null;
+// TODO remove DEBUG message
+System.out.println("DEcrypting password: " + Passwords.toString(decryptedPassword));
+            return decryptedPassword;
         } else {
             return this.passwordPlain;
         }
@@ -305,16 +305,16 @@ public class KdbEntryV1 implements KdbEntry, org.sperle.keepass.util.Comparable 
 
     // for tests only
     byte[] getPasswordEncrypted() {
-        return passwordEncrypted;
+        return this.passwordEncrypted;
     }
 
     // for tests only
-    String getPasswordPlain() {
-        return passwordPlain;
+    byte[] getPasswordPlain() {
+        return this.passwordPlain;
     }
     
     private boolean usePasswordEncryption() {
-        return cipher != null && passwordKey != null;
+        return this.passwordCipher != null;
     }
     
     public void setNotes(String notes) {
@@ -397,7 +397,7 @@ public class KdbEntryV1 implements KdbEntry, org.sperle.keepass.util.Comparable 
     }
 
     public boolean isInternal() {
-        return "Meta-Info".equals(this.title) && "SYSTEM".equals(this.username) && "$".equals(this.url) && "".equals(getPassword());
+        return "Meta-Info".equals(this.title) && "SYSTEM".equals(this.username) && "$".equals(this.url) && Passwords.isEmpty(getPassword());
     }
 
     public void addChangeListener(KdbChangeListener kdbChangeListener) {
@@ -420,6 +420,11 @@ public class KdbEntryV1 implements KdbEntry, org.sperle.keepass.util.Comparable 
         this.changeListeners.removeElement(kdbChangeListener);
     }
 
+    public void close() {
+        ByteArrays.fillCompletelyWith(this.passwordPlain, (byte)0);
+        ByteArrays.fillCompletelyWith(this.passwordEncrypted, (byte)0);
+    }
+    
     protected void copyValuesFrom(KdbEntryV1 entry) {
         this.iconId = entry.iconId;
         this.title = entry.title;
@@ -431,7 +436,12 @@ public class KdbEntryV1 implements KdbEntry, org.sperle.keepass.util.Comparable 
         } else {
             this.passwordEncrypted = null;
         }
-        this.passwordPlain = entry.passwordPlain;
+        if(entry.passwordPlain != null) {
+            this.passwordPlain = new byte[entry.passwordPlain.length];
+            ByteArrays.copyCompletelyTo(entry.passwordPlain, this.passwordPlain, 0);
+        } else {
+            this.passwordPlain = null;
+        }
         this.notes = entry.notes;
         this.expirationTime = entry.expirationTime;
         this.binaryDescription = entry.binaryDescription;

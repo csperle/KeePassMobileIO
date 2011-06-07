@@ -36,7 +36,7 @@ public interface KeePassDatabaseCryptoAlgorithm {
      * Encrypts a KeePass database.
      */
     byte[] encrypt(byte[] plainContentData, byte[] masterSeed, byte[] masterSeed2, int numKeyEncRounds, 
-	    byte[] encryptionIV, String masterPassword, byte[] keyFile, ProgressMonitor pm) throws KeePassCryptoException;
+	    byte[] encryptionIV, byte[] masterPassword, byte[] keyFile, ProgressMonitor pm) throws KeePassCryptoException;
     
     /**
      * Returns true, if this algorithm can encrypt/decrypt the given KeePass database.
@@ -47,5 +47,5 @@ public interface KeePassDatabaseCryptoAlgorithm {
      * Decrypts a KeePass database.
      */
     byte[] decrypt(byte[] encryptedContentData, byte[] masterSeed, byte[] masterSeed2, int numKeyEncRounds, 
-	    byte[] encryptionIV, String masterPassword, byte[] keyFile, PerformanceStatistics ps, ProgressMonitor pm) throws KeePassCryptoException;
+	    byte[] encryptionIV, byte[] masterPassword, byte[] keyFile, PerformanceStatistics ps, ProgressMonitor pm) throws KeePassCryptoException;
 }

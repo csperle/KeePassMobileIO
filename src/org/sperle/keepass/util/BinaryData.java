@@ -82,6 +82,18 @@ public class BinaryData {
     }
     
     /**
+     * Converts binary data back into a password byte array.
+     */
+    public static byte[] toPassword(byte data[], int offset) {
+        int length = getStringLength(data, offset);
+        byte[] passwd = new byte[length];
+        if(length > 0) {
+            ByteArrays.fillCompletelyFrom(data, offset, passwd);
+        }
+        return passwd;
+    }
+    
+    /**
      * Converts binary data back into a char array.
      */
     public static char[] toCharArray(byte data[], int offset) {
@@ -101,6 +113,13 @@ public class BinaryData {
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("UTF-8 encoding not supported on this system");
         }
+    }
+    
+    /**
+     * Converts a password into binary data.
+     */
+    public static byte[] fromPassword(byte[] s) {
+        return ByteArrays.append(s, new byte[]{STRING_TERMINATOR});
     }
     
     /**

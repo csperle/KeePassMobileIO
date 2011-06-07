@@ -142,4 +142,18 @@ public class ByteArrays {
 
         return true;
     }
+    
+    /**
+     * Fills a byte array with the given value.
+     * 
+     * @param target byte array to fill
+     * @param with byte value to fill with
+     */
+    public static void fillCompletelyWith(byte[] target, byte with) {
+        if(target != null && target.length > 0) {
+            for (int i = 0; i < target.length; i++) {
+                target[i] = with;
+            }
+        }
+    }
 }

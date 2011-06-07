@@ -54,7 +54,7 @@ public interface KdbEntry extends KdbItem {
     /**
      * The password of the entry.
      */
-    String getPassword();
+    byte[] getPassword();
 
     /**
      * The notes that belongs to this entry.
@@ -114,7 +114,7 @@ public interface KdbEntry extends KdbItem {
     /**
      * Sets a new password for this entry.
      */
-    void setPassword(String password);
+    void setPassword(byte[] password);
 
     /**
      * Sets the entry notes.
@@ -160,4 +160,9 @@ public interface KdbEntry extends KdbItem {
      * Removes a change listener from this entry.
      */
     void removeChangeListener(KdbChangeListener kdbChangeListener);
+
+    /**
+     * Called when database is closed. Destroy all confidential data here.
+     */
+    void close();
 }

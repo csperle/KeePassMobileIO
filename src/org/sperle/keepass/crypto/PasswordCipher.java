@@ -22,7 +22,7 @@ package org.sperle.keepass.crypto;
 
 
 /**
- * A password cipher is a crypto algorithm, that is able to encrypt and decrypt a KdbEntry password.
+ * A password cipher is a crypto algorithm, that is able to encrypt and decrypt a password.
  */
 public interface PasswordCipher {
     /**
@@ -31,18 +31,16 @@ public interface PasswordCipher {
     String getName();
 
     /**
-     * Encrypts plain text.
-     * @param key the key used for encryption
-     * @param plainText plain text to encrypt
+     * Encrypts a plain password.
+     * @param plainPassword plain password text to encrypt
      * @return encrypted text
      */
-    byte[] encrypt(byte[] key, byte[] plainText);
+    byte[] encrypt(byte[] plainPassword);
     
     /**
-     * Decrypts encrypted text.
-     * @param key the key used for encryption
-     * @param cipherText the encrypted text
+     * Decrypts the encrypted password.
+     * @param cipherPassword the encrypted password text
      * @return plain text
      */
-    byte[] decrypt(byte[] key, byte[] cipherText);
+    byte[] decrypt(byte[] cipherPassword);
 }
