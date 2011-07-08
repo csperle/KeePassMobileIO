@@ -46,6 +46,8 @@ public final class KeePassDatabaseV1 extends AbstractKeePassDatabase {
     
     // KDB V1 version
     public static final int VERSION = 0x00030002;
+    // KDB V1 version changed with version 1.20
+    public static final int VERSION_120 = 0x00030003;
     
     // KDB V1 default number of KeyEncRounds
     public static final int DEFAULT_NUMKEYENCROUNDS = 300; // KeePass: 6000
@@ -211,7 +213,7 @@ public final class KeePassDatabaseV1 extends AbstractKeePassDatabase {
     }
     
     protected boolean isVersionCorrect() {
-        return version == VERSION;
+        return version == VERSION || version == VERSION_120;
     }
     
     protected byte[] getMasterSeed() {
