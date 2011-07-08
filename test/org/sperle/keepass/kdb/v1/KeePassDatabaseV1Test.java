@@ -88,7 +88,7 @@ public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
     public void testWrongVersion() throws Exception {
         try {
             byte[] version = new byte[4];
-            BinaryData.fromInt(KeePassDatabaseV1.VERSION + 1, version, 0);
+            BinaryData.fromInt(KeePassDatabaseV1.VERSION - 1, version, 0);
             kdb.extractHeader(getValidKdbHeader(12, version));
             assertFalse(kdb.isVersionCorrect());
             assertTrue(kdb.verifyHeader());
