@@ -47,6 +47,23 @@ public class ByteArrays {
 	}
 	System.arraycopy(source, 0, target, offset, source.length);
     }
+    
+    /**
+     * Returns a copy of the given byte array.
+     * 
+     * @param from byte array to copy 
+     * @return a copy of the byte array
+     */
+    public static byte[] returnCopy(byte[] from) {
+        if(from == null) {
+            return null;
+        }
+        byte[] to = new byte[from.length];
+        if(from.length > 0) {
+            System.arraycopy(from, 0, to, 0, from.length);
+        }
+        return to;
+    }
 
     /**
      * Copies part of a byte array (source) from the given offset (and the

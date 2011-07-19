@@ -6,7 +6,7 @@ import org.sperle.keepass.KeePassMobileIOTest;
 public class ByteArraysTest extends KeePassMobileIOTest {
 
     public ByteArraysTest() {
-        super(8, "ByteArraysTest");
+        super(9, "ByteArraysTest");
     }
 
     public void test(int testNumber) throws Throwable {
@@ -19,6 +19,7 @@ public class ByteArraysTest extends KeePassMobileIOTest {
         case 5:testAppendSection();break;
         case 6:testCut();break;
         case 7:testFillCompletelyWith();break;
+        case 8:testReturnCopy();break;
         default:break;
         }
     }
@@ -98,5 +99,12 @@ public class ByteArraysTest extends KeePassMobileIOTest {
         target = new byte[] {1,2,3,4};
         ByteArrays.fillCompletelyWith(target, (byte)99);
         assertTrue(ByteArrays.equals(new byte[] {99,99,99,99}, target));
+    }
+    
+    private void testReturnCopy() {
+        byte[] from = new byte[] {1,2,3,4};
+        byte[] to = ByteArrays.returnCopy(from );
+        assertTrue(ByteArrays.equals(from, to));
+        assertFalse(from.equals(to));
     }
 }

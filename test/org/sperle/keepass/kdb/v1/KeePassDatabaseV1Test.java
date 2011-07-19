@@ -14,7 +14,7 @@ public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
     private TestRandom rand;
     
     public KeePassDatabaseV1Test() {
-        super(23, "KeePassDatabaseV1Test");
+        super(24, "KeePassDatabaseV1Test");
     }
 
     public void test(int testNumber) throws Throwable {
@@ -42,6 +42,7 @@ public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
         case 20:testCheckNewBackupFlag();break;
         case 21:testBackup();break;
         case 22:testMove();break;
+        case 23:testExtractHeaderAndDeleteSensibleData();break;
         default:break;
         }
     }
@@ -52,7 +53,7 @@ public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
     }
 
     public void testSignatureCorrect() throws Exception {
-	kdb.extractHeader(getValidKdbHeader(0, new byte[0]));
+	kdb.extractHeader(getValidKdbHeader());
 	assertTrue(kdb.isSignatureCorrect());
 	assertTrue(kdb.verifyHeader());
     }
@@ -81,7 +82,7 @@ public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
     }
     
     public void testVersion() throws Exception {
-	kdb.extractHeader(getValidKdbHeader(12, new byte[0]));
+	kdb.extractHeader(getValidKdbHeader());
 	assertTrue(kdb.isVersionCorrect());
 	assertTrue(kdb.verifyHeader());
     }
@@ -150,6 +151,42 @@ public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
 	kdb.extractHeader(getValidKdbHeader(120, rounds));
 	assertEquals(71, kdb.getNumKeyEncRounds());
 	assertTrue(kdb.verifyHeader());
+    }
+    
+    public void testExtractHeaderAndDeleteSensibleData() throws Exception {
+        byte[] header = getValidKdbHeader();
+        byte[] seed = new byte[] {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, -0x08, -0x07, -0x06, -0x05, -0x04, -0x03, -0x02, -0x01};
+        ByteArrays.copyCompletelyTo(seed, header, 16);
+        byte[] iv = new byte[] {-0x08, -0x07, -0x06, -0x05, -0x04, -0x03, -0x02, -0x01, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+        ByteArrays.copyCompletelyTo(iv, header, 32);
+        byte[] groups = new byte[4];
+        BinaryData.fromInt(13, groups, 0);
+        ByteArrays.copyCompletelyTo(groups, header, 48);
+        byte[] entries = new byte[4];
+        BinaryData.fromInt(17, entries, 0);
+        ByteArrays.copyCompletelyTo(entries, header, 52);
+        byte[] hash = new byte[] {-0x08, -0x07, -0x06, -0x05, -0x04, -0x03, -0x02, -0x01, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+                -0x08, -0x07, -0x06, -0x05, -0x04, -0x03, -0x02, -0x01, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+        ByteArrays.copyCompletelyTo(hash, header, 56);
+        byte[] ms2 = new byte[] {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, -0x08, -0x07, -0x06, -0x05, -0x04, -0x03, -0x02, -0x01,
+                0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, -0x08, -0x07, -0x06, -0x05, -0x04, -0x03, -0x02, -0x01};
+        ByteArrays.copyCompletelyTo(ms2, header, 88);
+        byte[] rounds = new byte[4];
+        BinaryData.fromInt(301, rounds, 0);
+        ByteArrays.copyCompletelyTo(rounds, header, 120);
+        kdb.extractHeader(header);
+        
+        // delete sensible data (like it is done in the KeePassDatabase Manager)!
+        ByteArrays.fillCompletelyWith(header, (byte)0);
+        
+        assertTrue(ByteArrays.equals(seed, kdb.getMasterSeed()));
+        assertTrue(ByteArrays.equals(iv, kdb.getEncryptionIV()));
+        assertEquals(13, kdb.getNumGroups());
+        assertEquals(17, kdb.getNumEntries());
+        assertTrue(ByteArrays.equals(hash, kdb.getContentHash()));
+        assertTrue(ByteArrays.equals(ms2, kdb.getMasterSeed2()));
+        assertEquals(301, kdb.getNumKeyEncRounds());
+        assertTrue(kdb.verifyHeader());
     }
     
     public void testGroupsAndEntries() throws Exception {
@@ -486,13 +523,19 @@ public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
         assertEquals(entry,(KdbEntryV1)kdb.getEntries(toGroup).elementAt(0));;
     }
     
+    private static byte[] getValidKdbHeader() {
+        return getValidKdbHeader(0, null);
+    }
+    
     private static byte[] getValidKdbHeader(int offset, byte[] data) {
 	byte[] header = new byte[KeePassDatabaseV1.HEADER_LENGTH];
 	BinaryData.fromInt(KeePassDatabaseV1.SIGNATURE1, header, 0);
 	BinaryData.fromInt(KeePassDatabaseV1.SIGNATURE2, header, 4);
 	BinaryData.fromInt(KdbAlgorithmV1.FLAG_SHA2 + KdbAlgorithmV1.FLAG_AES, header, 8);
 	BinaryData.fromInt(KeePassDatabaseV1.VERSION, header, 12);
-	ByteArrays.copyCompletelyTo(data, header, offset);
+	if(data != null) {
+	    ByteArrays.copyCompletelyTo(data, header, offset);
+	}
 	return header;
     }
 }

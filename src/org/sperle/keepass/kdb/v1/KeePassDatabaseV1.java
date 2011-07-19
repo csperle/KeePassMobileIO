@@ -164,11 +164,11 @@ public final class KeePassDatabaseV1 extends AbstractKeePassDatabase {
         return header;
     }
     
-    public byte[] getMasterPassword() {
+    protected byte[] getMasterPassword() {
         return this.masterPasswordEncrypted != null ? cipher.decrypt(this.masterPasswordEncrypted) : null;
     }
 
-    public void setMasterPassword(byte[] masterPassword) {
+    protected void setMasterPassword(byte[] masterPassword) {
         this.masterPasswordEncrypted = (masterPassword != null ? cipher.encrypt(masterPassword) : null);
         this.changed = true;
     }
@@ -178,7 +178,7 @@ public final class KeePassDatabaseV1 extends AbstractKeePassDatabase {
         return masterPasswordEncrypted;
     }
 
-    public byte[] getKeyFile() {
+    protected byte[] getKeyFile() {
         return this.keyFileEncrypted != null ? cipher.decrypt(this.keyFileEncrypted) : null;
     }
 
@@ -186,13 +186,13 @@ public final class KeePassDatabaseV1 extends AbstractKeePassDatabase {
         return this.keyFileEncrypted != null;
     }
     
-    public void removeKeyFile() {
+    protected void removeKeyFile() {
         ByteArrays.fillCompletelyWith(this.keyFileEncrypted, (byte)0);
         this.keyFileEncrypted = null;
         this.changed = true;
     }
     
-    public void setKeyFile(byte[] keyFile) {
+    protected void setKeyFile(byte[] keyFile) {
         this.keyFileEncrypted = (keyFile != null ? cipher.encrypt(keyFile) : null);
         this.changed = true;
     }

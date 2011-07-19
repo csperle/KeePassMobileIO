@@ -44,6 +44,7 @@ public class KdbGroupV1Test extends KeePassMobileIOTest {
 	BinaryData.fromInt(31, groupData, 6);
 	BinaryData.fromUnsignedShort(KdbGroupV1.FIELDTYPE_TERMINATOR, groupData, 10);
 	group.extract(groupData, 0);
+	ByteArrays.fillCompletelyWith(groupData, (byte)0);
 	assertEquals(31, group.getId());
     }
 
@@ -54,6 +55,7 @@ public class KdbGroupV1Test extends KeePassMobileIOTest {
 	ByteArrays.copyCompletelyTo(BinaryData.fromString("Test Group"), groupData, 6);
 	BinaryData.fromUnsignedShort(KdbGroupV1.FIELDTYPE_TERMINATOR, groupData, 17);
 	group.extract(groupData, 0);
+	ByteArrays.fillCompletelyWith(groupData, (byte)0);
 	assertEquals("Test Group", group.getName());
     }
     
@@ -65,6 +67,7 @@ public class KdbGroupV1Test extends KeePassMobileIOTest {
 	creationDate.toBinaryData(groupData, 6);
 	BinaryData.fromUnsignedShort(KdbGroupV1.FIELDTYPE_TERMINATOR, groupData, 11);
 	group.extract(groupData, 0);
+	ByteArrays.fillCompletelyWith(groupData, (byte)0);
 	assertEquals(creationDate, group.getCreationTime());
     }
     
@@ -76,6 +79,7 @@ public class KdbGroupV1Test extends KeePassMobileIOTest {
 	lastModificationTime.toBinaryData(groupData, 6);
 	BinaryData.fromUnsignedShort(KdbGroupV1.FIELDTYPE_TERMINATOR, groupData, 11);
 	group.extract(groupData, 0);
+	ByteArrays.fillCompletelyWith(groupData, (byte)0);
 	assertEquals(lastModificationTime, group.getLastModificationTime());
     }
     
@@ -87,6 +91,7 @@ public class KdbGroupV1Test extends KeePassMobileIOTest {
 	lastAccessTime.toBinaryData(groupData, 6);
 	BinaryData.fromUnsignedShort(KdbGroupV1.FIELDTYPE_TERMINATOR, groupData, 11);
 	group.extract(groupData, 0);
+	ByteArrays.fillCompletelyWith(groupData, (byte)0);
 	assertEquals(lastAccessTime, group.getLastAccessTime());
     }
     
@@ -98,6 +103,7 @@ public class KdbGroupV1Test extends KeePassMobileIOTest {
 	expirationTime.toBinaryData(groupData, 6);
 	BinaryData.fromUnsignedShort(KdbGroupV1.FIELDTYPE_TERMINATOR, groupData, 11);
 	group.extract(groupData, 0);
+	ByteArrays.fillCompletelyWith(groupData, (byte)0);
 	assertEquals(expirationTime, group.getExpirationTime());
     }
     
@@ -108,6 +114,7 @@ public class KdbGroupV1Test extends KeePassMobileIOTest {
 	BinaryData.fromInt(99, groupData, 6);
 	BinaryData.fromUnsignedShort(KdbGroupV1.FIELDTYPE_TERMINATOR, groupData, 10);
 	group.extract(groupData, 0);
+	ByteArrays.fillCompletelyWith(groupData, (byte)0);
 	assertEquals(99, group.getIconId());
     }
     
@@ -118,6 +125,7 @@ public class KdbGroupV1Test extends KeePassMobileIOTest {
 	BinaryData.fromUnsignedShort(99, groupData, 6);
 	BinaryData.fromUnsignedShort(KdbGroupV1.FIELDTYPE_TERMINATOR, groupData, 8);
 	group.extract(groupData, 0);
+	ByteArrays.fillCompletelyWith(groupData, (byte)0);
 	assertEquals(99, group.getTreeLevel());
     }
     
@@ -128,6 +136,7 @@ public class KdbGroupV1Test extends KeePassMobileIOTest {
 	BinaryData.fromInt(11111, groupData, 6);
 	BinaryData.fromUnsignedShort(KdbGroupV1.FIELDTYPE_TERMINATOR, groupData, 10);
 	group.extract(groupData, 0);
+	ByteArrays.fillCompletelyWith(groupData, (byte)0);
 	assertEquals(11111, group.getInternalFlags());
     }
     

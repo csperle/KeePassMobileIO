@@ -56,6 +56,7 @@ public class KdbEntryV1Test extends KeePassMobileIOTest {
 	ByteArrays.copyCompletelyTo(new byte[]{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16}, entryData, 6);
 	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_TERMINATOR, entryData, 22);
 	entry.extract(entryData, 0);
+	ByteArrays.fillCompletelyWith(entryData, (byte)0);
 	assertTrue(ByteArrays.equals(new byte[]{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16}, entry.getId()));
     }
     
@@ -66,6 +67,7 @@ public class KdbEntryV1Test extends KeePassMobileIOTest {
 	BinaryData.fromInt(33, entryData, 6);
 	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_TERMINATOR, entryData, 10);
 	entry.extract(entryData, 0);
+	ByteArrays.fillCompletelyWith(entryData, (byte)0);
 	assertEquals(33, entry.getGroupId());
     }
     
@@ -76,80 +78,97 @@ public class KdbEntryV1Test extends KeePassMobileIOTest {
 	BinaryData.fromInt(211, entryData, 6);
 	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_TERMINATOR, entryData, 10);
 	entry.extract(entryData, 0);
+	ByteArrays.fillCompletelyWith(entryData, (byte)0);
 	assertEquals(211, entry.getIconId());
     }
     
     public void testTitle() throws Exception {
-	entry.extract(constructEntyDataFromString(KdbEntryV1.FIELDTYPE_TITLE, "Test Entry"), 0);
+        byte[] entryData = constructEntyDataFromString(KdbEntryV1.FIELDTYPE_TITLE, "Test Entry");
+	entry.extract(entryData, 0);
+	ByteArrays.fillCompletelyWith(entryData, (byte)0);
 	assertEquals("Test Entry", entry.getTitle());
     }
     
     public void testUrl() throws Exception {
-	entry.extract(constructEntyDataFromString(KdbEntryV1.FIELDTYPE_URL, "http://www.keepass.org/"), 0);
+	byte[] entryData = constructEntyDataFromString(KdbEntryV1.FIELDTYPE_URL, "http://www.keepass.org/");
+        entry.extract(entryData, 0);
+	ByteArrays.fillCompletelyWith(entryData, (byte)0);
 	assertEquals("http://www.keepass.org/", entry.getUrl());
     }
     
     public void testUsername() throws Exception {
-	entry.extract(constructEntyDataFromString(KdbEntryV1.FIELDTYPE_USERNAME, "testuser"), 0);
+	byte[] entryData = constructEntyDataFromString(KdbEntryV1.FIELDTYPE_USERNAME, "testuser");
+        entry.extract(entryData, 0);
+	ByteArrays.fillCompletelyWith(entryData, (byte)0);
 	assertEquals("testuser", entry.getUsername());
     }
     
     public void testPassword() throws Exception {
-	entry.extract(constructEntyDataFromPassword(KdbEntryV1.FIELDTYPE_PASSWORD, Passwords.fromString("geheim")), 0);
+	byte[] entryData = constructEntyDataFromPassword(KdbEntryV1.FIELDTYPE_PASSWORD, Passwords.fromString("geheim"));
+        entry.extract(entryData, 0);
+	ByteArrays.fillCompletelyWith(entryData, (byte)0);
 	assertEquals("geheim", Passwords.toString(entry.getPassword()));
     }
     
     public void testNotes() throws Exception {
-	entry.extract(constructEntyDataFromString(KdbEntryV1.FIELDTYPE_NOTES, "This is my little test note!"), 0);
+	byte[] entryData = constructEntyDataFromString(KdbEntryV1.FIELDTYPE_NOTES, "This is my little test note!");
+        entry.extract(entryData, 0);
+	ByteArrays.fillCompletelyWith(entryData, (byte)0);
 	assertEquals("This is my little test note!", entry.getNotes());
     }
     
     public void testCreationTime() throws Exception {
         KdbDate creationDate = new KdbDate(2008, 12, 13, 12, 58, 55);
-	byte[] groupData = new byte[13];
-	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_CREATIONTIME, groupData, 0);
-	BinaryData.fromInt(5, groupData, 2);
-	creationDate.toBinaryData(groupData, 6);
-	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_TERMINATOR, groupData, 11);
-	entry.extract(groupData, 0);
+	byte[] entryData = new byte[13];
+	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_CREATIONTIME, entryData, 0);
+	BinaryData.fromInt(5, entryData, 2);
+	creationDate.toBinaryData(entryData, 6);
+	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_TERMINATOR, entryData, 11);
+	entry.extract(entryData, 0);
+	ByteArrays.fillCompletelyWith(entryData, (byte)0);
 	assertEquals(creationDate, entry.getCreationTime());
     }
     
     public void testLastModificationTime() throws Exception {
 	KdbDate lastModificationTime = new KdbDate(2008, 12, 13, 12, 59, 1);
-	byte[] groupData = new byte[13];
-	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_LASTMODIFICATIONTIME, groupData, 0);
-	BinaryData.fromInt(5, groupData, 2);
-	lastModificationTime.toBinaryData(groupData, 6);
-	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_TERMINATOR, groupData, 11);
-	entry.extract(groupData, 0);
+	byte[] entryData = new byte[13];
+	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_LASTMODIFICATIONTIME, entryData, 0);
+	BinaryData.fromInt(5, entryData, 2);
+	lastModificationTime.toBinaryData(entryData, 6);
+	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_TERMINATOR, entryData, 11);
+	entry.extract(entryData, 0);
+	ByteArrays.fillCompletelyWith(entryData, (byte)0);
 	assertEquals(lastModificationTime, entry.getLastModificationTime());
     }
     
     public void testLastAccessTime() throws Exception {
 	KdbDate lastAccessTime = new KdbDate(2008, 12, 13, 13, 1, 31);
-	byte[] groupData = new byte[13];
-	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_LASTACCESSTIME, groupData, 0);
-	BinaryData.fromInt(5, groupData, 2);
-	lastAccessTime.toBinaryData(groupData, 6);
-	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_TERMINATOR, groupData, 11);
-	entry.extract(groupData, 0);
+	byte[] entryData = new byte[13];
+	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_LASTACCESSTIME, entryData, 0);
+	BinaryData.fromInt(5, entryData, 2);
+	lastAccessTime.toBinaryData(entryData, 6);
+	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_TERMINATOR, entryData, 11);
+	entry.extract(entryData, 0);
+	ByteArrays.fillCompletelyWith(entryData, (byte)0);
 	assertEquals(lastAccessTime, entry.getLastAccessTime());
     }
     
     public void testExpirationTime() throws Exception {
 	KdbDate expirationTime = new KdbDate(2008, 12, 13, 13, 7, 49);
-	byte[] groupData = new byte[13];
-	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_EXPIRATIONTIME, groupData, 0);
-	BinaryData.fromInt(5, groupData, 2);
-	expirationTime.toBinaryData(groupData, 6);
-	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_TERMINATOR, groupData, 11);
-	entry.extract(groupData, 0);
+	byte[] entryData = new byte[13];
+	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_EXPIRATIONTIME, entryData, 0);
+	BinaryData.fromInt(5, entryData, 2);
+	expirationTime.toBinaryData(entryData, 6);
+	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_TERMINATOR, entryData, 11);
+	entry.extract(entryData, 0);
+	ByteArrays.fillCompletelyWith(entryData, (byte)0);
 	assertEquals(expirationTime, entry.getExpirationTime());
     }
     
     public void testBinaryDescription() throws Exception {
-	entry.extract(constructEntyDataFromString(KdbEntryV1.FIELDTYPE_BINARYDESCRIPTION, "This binäry is just for testing purpose!"), 0);
+	byte[] entryData = constructEntyDataFromString(KdbEntryV1.FIELDTYPE_BINARYDESCRIPTION, "This binäry is just for testing purpose!");
+        entry.extract(entryData, 0);
+	ByteArrays.fillCompletelyWith(entryData, (byte)0);
 	assertEquals("This binäry is just for testing purpose!", entry.getBinaryDescription());
     }
     
@@ -160,6 +179,7 @@ public class KdbEntryV1Test extends KeePassMobileIOTest {
 	ByteArrays.copyCompletelyTo(new byte[]{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}, entryData, 6);
 	BinaryData.fromUnsignedShort(KdbEntryV1.FIELDTYPE_TERMINATOR, entryData, 30);
 	entry.extract(entryData, 0);
+	ByteArrays.fillCompletelyWith(entryData, (byte)0);
 	assertTrue(ByteArrays.equals(new byte[]{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24}, entry.getBinaryData()));
     }
     

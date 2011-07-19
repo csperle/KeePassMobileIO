@@ -50,19 +50,9 @@ public interface KeePassDatabase {
     String getDatabaseName();
     
     /**
-     * Sets new master password for this database.
-     */
-    void setMasterPassword(byte[] masterPassword);
-    
-    /**
      * Returns true, if database uses a key file for encryption.
      */
     boolean hasKeyFile();
-    
-    /**
-     * Removes the file that is used as part of the master key.
-     */
-    void removeKeyFile();
     
     /**
      * Returns the number of groups in this database.

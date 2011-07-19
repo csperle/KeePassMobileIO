@@ -66,10 +66,15 @@ public class KeePassDatabaseManagerV1 implements KeePassDatabaseManager {
             keyFile = loadKeyFile(keyFileName);
         }
         
-        KeePassDatabaseV1 kdb = new KeePassDatabaseV1(rand, cryptoManager.getPasswordCipher(RC4Cipher.NAME),
+        try {
+            KeePassDatabaseV1 kdb = new KeePassDatabaseV1(rand, cryptoManager.getPasswordCipher(RC4Cipher.NAME),
                 usePasswordEncryption, name, Passwords.getEncodedMasterPassword(masterPassword), keyFile);
-        kdb.init();
-        return kdb;
+            kdb.init();
+            
+            return kdb;
+        } finally { // delete all sensible data
+            ByteArrays.fillCompletelyWith(keyFile, (byte)0);
+        }        
     }
     
     public KeePassDatabase load(String fileName, String masterPassword, String keyFileName, boolean usePasswordEncryption, ProgressMonitor pm) throws IOException, KeePassCryptoException, KeePassDatabaseException {
@@ -78,47 +83,56 @@ public class KeePassDatabaseManagerV1 implements KeePassDatabaseManager {
         }
         
         byte[] keyFile = null;
-        if(keyFileName != null) {
-            keyFile = loadKeyFile(keyFileName);
+        byte[] data = null;
+        byte[] encryptedContentData = null;
+        byte[] plainContentData = null;
+        try {
+            if(keyFileName != null) {
+                keyFile = loadKeyFile(keyFileName);
+            }
+            
+            if(pm != null) pm.setSteps(5);
+            PerformanceStatistics ps = new PerformanceStatistics();
+            long start = System.currentTimeMillis();
+            data = fileManager.loadBinary(fileName, pm);
+    	    if(data == null) return null; // user canceled
+    	    ps.setLoadTime(System.currentTimeMillis() - start);
+    	
+    	    KeePassDatabaseV1 kdb = new KeePassDatabaseV1(rand, cryptoManager.getPasswordCipher(RC4Cipher.NAME),
+    	            usePasswordEncryption, fileName, Passwords.getEncodedMasterPassword(masterPassword), keyFile);
+    	    kdb.extractHeader(data);
+    	    kdb.verifyHeader();
+    	    
+    	    KeePassDatabaseCryptoAlgorithm cryptoAlgorithmToUse = getCryptoAlgorithmThatCanHandle(kdb);
+    	    
+    	    encryptedContentData = kdb.getEncryptedContent(data);
+    	    ps.setEncryptedContentDataLength(encryptedContentData.length);
+    	    
+    	    plainContentData = cryptoAlgorithmToUse.decrypt(encryptedContentData, kdb.getMasterSeed(), 
+    	            kdb.getMasterSeed2(), kdb.getNumKeyEncRounds(), kdb.getEncryptionIV(), Passwords.getEncodedMasterPassword(masterPassword), keyFile, ps, pm);
+    	    if(plainContentData == null) return null; // user canceled
+    	    ps.setPlainContentDataLength(plainContentData.length);
+    	    
+    	    start = System.currentTimeMillis();
+    	    byte[] hash = calculateContentHash(plainContentData, cryptoManager.getHash("SHA256"), pm);
+    	    if(hash == null) return null; // user canceled
+    	    kdb.verifyContent(hash);
+    	    ps.setContentHashCalculationTime(System.currentTimeMillis() - start);
+    	    
+    	    start = System.currentTimeMillis();
+    	    kdb.extractContent(plainContentData, pm);
+    	    if(pm != null && pm.isCanceled()) return null;
+    	    ps.setContentExtractionTime(System.currentTimeMillis() - start);
+    	    kdb.setPerformanceStatistics(ps);
+    	    kdb.checkNewBackupFlag();
+    	    kdb.initChangeEventSupport();
+    	    return kdb;
+        } finally { // delete all sensible data
+            ByteArrays.fillCompletelyWith(keyFile, (byte)0);
+            ByteArrays.fillCompletelyWith(data, (byte)0);
+            ByteArrays.fillCompletelyWith(encryptedContentData, (byte)0);
+            ByteArrays.fillCompletelyWith(plainContentData, (byte)0);
         }
-        
-        if(pm != null) pm.setSteps(5);
-        PerformanceStatistics ps = new PerformanceStatistics();
-        long start = System.currentTimeMillis();
-	byte[] data = fileManager.loadBinary(fileName, pm);
-	if(data == null) return null; // user canceled
-	ps.setLoadTime(System.currentTimeMillis() - start);
-	
-	KeePassDatabaseV1 kdb = new KeePassDatabaseV1(rand, cryptoManager.getPasswordCipher(RC4Cipher.NAME),
-	        usePasswordEncryption, fileName, Passwords.getEncodedMasterPassword(masterPassword), keyFile);
-	kdb.extractHeader(data);
-	kdb.verifyHeader();
-	
-	KeePassDatabaseCryptoAlgorithm cryptoAlgorithmToUse = getCryptoAlgorithmThatCanHandle(kdb);
-	
-	byte[] encryptedContentData = kdb.getEncryptedContent(data);
-	ps.setEncryptedContentDataLength(encryptedContentData.length);
-	
-	byte[] plainContentData = cryptoAlgorithmToUse.decrypt(encryptedContentData, kdb.getMasterSeed(), 
-		kdb.getMasterSeed2(), kdb.getNumKeyEncRounds(), kdb.getEncryptionIV(), Passwords.getEncodedMasterPassword(masterPassword), keyFile, ps, pm);
-	if(plainContentData == null) return null; // user canceled
-	ps.setPlainContentDataLength(plainContentData.length);
-	
-	start = System.currentTimeMillis();
-	byte[] hash = calculateContentHash(plainContentData, cryptoManager.getHash("SHA256"), pm);
-	if(hash == null) return null; // user canceled
-	kdb.verifyContent(hash);
-	ps.setContentHashCalculationTime(System.currentTimeMillis() - start);
-	
-	start = System.currentTimeMillis();
-	kdb.extractContent(plainContentData, pm);
-	if(pm != null && pm.isCanceled()) return null;
-	ps.setContentExtractionTime(System.currentTimeMillis() - start);
-	kdb.setPerformanceStatistics(ps);
-	kdb.checkNewBackupFlag();
-	kdb.initChangeEventSupport();
-	
-	return kdb;
     }
     
     public void registerCryptoAlgorithm(KeePassDatabaseCryptoAlgorithm cryptoAlgorithm) {
@@ -140,8 +154,13 @@ public class KeePassDatabaseManagerV1 implements KeePassDatabaseManager {
         }
         KeePassDatabaseV1 kdbV1 = (KeePassDatabaseV1)kdb;
         
-        byte[] keyFile = loadKeyFile(filename);
-        kdbV1.setKeyFile(keyFile);
+        byte[] keyFile = null;
+        try {
+            keyFile = loadKeyFile(filename);
+            kdbV1.setKeyFile(keyFile);
+        } finally { // delete all sensible data
+            ByteArrays.fillCompletelyWith(keyFile, (byte)0);
+        }
     }
     
     public boolean save(KeePassDatabase kdb, String fileName, ProgressMonitor pm) throws IOException, KeePassDatabaseException, KeePassCryptoException {
@@ -158,24 +177,34 @@ public class KeePassDatabaseManagerV1 implements KeePassDatabaseManager {
         }
         KeePassDatabaseV1 kdbV1 = (KeePassDatabaseV1)kdb;
         
-        KeePassDatabaseCryptoAlgorithm cryptoAlgorithmToUse = getCryptoAlgorithmThatCanHandle(kdbV1);
-        
-        if(pm != null) pm.setSteps(5);
-        byte[] plainContentData = kdbV1.getPlainContentData(pm, false);
-        if(plainContentData == null) return false; // user canceled
-        
-        if(!forTest) kdbV1.reinitBeforeSave();
-        byte[] encryptedContentData = cryptoAlgorithmToUse.encrypt(plainContentData, kdbV1.getMasterSeed(), 
-                kdbV1.getMasterSeed2(), kdbV1.getNumKeyEncRounds(), kdbV1.getEncryptionIV(), kdbV1.getMasterPassword(), kdbV1.getKeyFile(), pm);
-        if (encryptedContentData == null) return false; // user canceled
-        byte[] hash = calculateContentHash(plainContentData, cryptoManager.getHash("SHA256"), pm);
-        if(hash == null) return false; // user canceled
-        kdbV1.setContentHash(hash);
-        byte[] encryptedDB = ByteArrays.append(kdbV1.getHeader(), encryptedContentData);
-        fileManager.saveBinary(fileName, encryptedDB, pm);
-        kdbV1.setFileName(fileName);
-        kdbV1.resetChanged();
-        return true;
+        byte[] plainContentData = null;
+        byte[] encryptedContentData = null;
+        byte[] encryptedDB = null;
+        try {
+            KeePassDatabaseCryptoAlgorithm cryptoAlgorithmToUse = getCryptoAlgorithmThatCanHandle(kdbV1);
+            
+            if(pm != null) pm.setSteps(5);
+            plainContentData = kdbV1.getPlainContentData(pm, false);
+            if(plainContentData == null) return false; // user canceled
+            
+            if(!forTest) kdbV1.reinitBeforeSave();
+            encryptedContentData = cryptoAlgorithmToUse.encrypt(plainContentData, kdbV1.getMasterSeed(), 
+                    kdbV1.getMasterSeed2(), kdbV1.getNumKeyEncRounds(), kdbV1.getEncryptionIV(), kdbV1.getMasterPassword(), kdbV1.getKeyFile(), pm);
+            if (encryptedContentData == null) return false; // user canceled
+            byte[] hash = calculateContentHash(plainContentData, cryptoManager.getHash("SHA256"), pm);
+            if(hash == null) return false; // user canceled
+            kdbV1.setContentHash(hash);
+            // TODO this statement uses too much memory! ->
+            encryptedDB = ByteArrays.append(kdbV1.getHeader(), encryptedContentData);
+            fileManager.saveBinary(fileName, encryptedDB, pm);
+            kdbV1.setFileName(fileName);
+            kdbV1.resetChanged();
+            return true;
+        } finally { // delete all sensible data
+            ByteArrays.fillCompletelyWith(plainContentData, (byte)0);
+            ByteArrays.fillCompletelyWith(encryptedContentData, (byte)0);
+            ByteArrays.fillCompletelyWith(encryptedDB, (byte)0);
+        }
     }
     
     private KeePassDatabaseCryptoAlgorithm getCryptoAlgorithmThatCanHandle(KeePassDatabaseV1 kdb) throws KeePassDatabaseException {

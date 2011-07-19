@@ -47,7 +47,7 @@ public abstract class KeePassMobileIOTest extends TestCase {
         }
         
         public void saveBinary(String filename, byte[] binary, ProgressMonitor pm) throws IOException {
-            savedFiles.put(filename, binary);
+            savedFiles.put(filename, ByteArrays.returnCopy(binary));
         }
         
         public void delete(String filename) throws IOException {

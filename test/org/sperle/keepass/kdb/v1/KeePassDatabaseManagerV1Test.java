@@ -1,6 +1,5 @@
 package org.sperle.keepass.kdb.v1;
 
-import org.bouncycastle.util.encoders.Hex;
 import org.sperle.keepass.KeePassMobileIOTest;
 import org.sperle.keepass.TestRandom;
 import org.sperle.keepass.crypto.CryptoManager;
@@ -44,7 +43,7 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
     private KeePassDatabaseManagerV1 dm;
     
     public KeePassDatabaseManagerV1Test() {
-        super(11, "KeePassDatabaseManagerV1Test");
+        super(10, "KeePassDatabaseManagerV1Test");
     }
 
     public void test(int testNumber) throws Throwable {
@@ -59,8 +58,8 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
         case 6:testLoadKeyFilePng();break;
         case 7:testLoadPassKeyFilePng();break;
         case 8:testChangeKeyEncRounds();break;
-        case 9:testChangePassword();break;
-        case 10:testAddRemoveGroup();break;
+        //case 9:testChangePassword();break;
+        case 9:testAddRemoveGroup();break;
         default:break;
         }
     }
@@ -200,24 +199,25 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
         assertEquals(50, db2.getNumKeyEncRounds());
     }
     
-    public void testChangePassword() throws Exception {
-        KeePassDatabase db = dm.load(TEST1_DB, TEST1_PASSWORD, null, false, null);
-        db.setMasterPassword(Passwords.getEncodedMasterPassword("@!\"§$%&/()[]=*\\n ÖÄÜöäüß"));
-        assertTrue(db.hasChanged());
-        dm.save(db, TEST1_SAVED, null, true);
-        assertFalse(fileManager.equals(TEST1_DB, TEST1_SAVED));
-        
-        try {
-            dm.load(TEST1_SAVED, TEST1_PASSWORD, null, false, null);
-            fail("Should not be loadable with old password");
-        } catch (Exception e) {
-            // OK
-        }
-        
-        KeePassDatabase db2 = dm.load(TEST1_SAVED, "@!\"§$%&/()[]=*\\n ÖÄÜöäüß", null, false, null);
-        assertEquals(2116301545, ((KdbGroupV1)db2.getGroups().elementAt(0)).getId());
-        assertEquals("General", ((KdbGroupV1)db2.getGroups().elementAt(0)).getName());
-    }
+// TODO rewrite test: change password using the KeePassMobile facade
+//    public void testChangePassword() throws Exception {
+//        KeePassDatabase db = dm.load(TEST1_DB, TEST1_PASSWORD, null, false, null);
+//        db.setMasterPassword(Passwords.getEncodedMasterPassword("@!\"§$%&/()[]=*\\n ÖÄÜöäüß"));
+//        assertTrue(db.hasChanged());
+//        dm.save(db, TEST1_SAVED, null, true);
+//        assertFalse(fileManager.equals(TEST1_DB, TEST1_SAVED));
+//        
+//        try {
+//            dm.load(TEST1_SAVED, TEST1_PASSWORD, null, false, null);
+//            fail("Should not be loadable with old password");
+//        } catch (Exception e) {
+//            // OK
+//        }
+//        
+//        KeePassDatabase db2 = dm.load(TEST1_SAVED, "@!\"§$%&/()[]=*\\n ÖÄÜöäüß", null, false, null);
+//        assertEquals(2116301545, ((KdbGroupV1)db2.getGroups().elementAt(0)).getId());
+//        assertEquals("General", ((KdbGroupV1)db2.getGroups().elementAt(0)).getName());
+//    }
     
     public void testAddRemoveGroup() throws Exception {
         rand.setRandomInt(new int[]{1});
