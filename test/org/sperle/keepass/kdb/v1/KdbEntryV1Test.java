@@ -245,12 +245,16 @@ public class KdbEntryV1Test extends KeePassMobileIOTest {
     public void testIsInternal() {
         assertFalse(entry.isInternal());
         entry.setTitle("Meta-Info");
+        entry.setInternal();
         assertFalse(entry.isInternal());
         entry.setUsername("SYSTEM");
+        entry.setInternal();
         assertFalse(entry.isInternal());
         entry.setPassword(Passwords.EMPTY_PASSWORD);
+        entry.setInternal();
         assertFalse(entry.isInternal());
         entry.setUrl("$");
+        entry.setInternal();
         assertTrue(entry.isInternal());
     }
     

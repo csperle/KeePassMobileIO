@@ -73,6 +73,7 @@ public class KdbEntryV1 implements KdbEntry, org.sperle.keepass.util.Comparable 
     private KdbDate expirationTime; // user
     private String binaryDescription; // user
     private byte[] binaryData; // user
+    private boolean internal; // computed
     
     private transient Vector changeListeners = new Vector();
     
@@ -101,6 +102,7 @@ public class KdbEntryV1 implements KdbEntry, org.sperle.keepass.util.Comparable 
         this.expirationTime = KdbDate.NEVER_EXPIRES;
         this.binaryDescription = null;
         this.binaryData = null;
+        this.internal = false;
     }
     
     // load
@@ -110,11 +112,16 @@ public class KdbEntryV1 implements KdbEntry, org.sperle.keepass.util.Comparable 
 	    extractField(plainContentData, offset);
 	    offset += getFieldSize(plainContentData, offset) + FIELDTYPE_SIZE + FIELDSIZE_SIZE;
 	}
+	setInternal();
 	// add terminator field
 	offset += FIELDTYPE_SIZE + FIELDSIZE_SIZE;
 	return offset;
     }
     
+    void setInternal() {
+        this.internal = "Meta-Info".equals(this.title) && "SYSTEM".equals(this.username) && "$".equals(this.url) && Passwords.isEmpty(getPassword());        
+    }
+
     private int getFieldType(byte[] fieldData, int offset) {
 	return BinaryData.toUnsignedShort(fieldData, offset);
     }
@@ -397,7 +404,7 @@ System.out.println("DEcrypting password: " + Passwords.toString(decryptedPasswor
     }
 
     public boolean isInternal() {
-        return "Meta-Info".equals(this.title) && "SYSTEM".equals(this.username) && "$".equals(this.url) && Passwords.isEmpty(getPassword());
+        return internal;
     }
 
     public void addChangeListener(KdbChangeListener kdbChangeListener) {
