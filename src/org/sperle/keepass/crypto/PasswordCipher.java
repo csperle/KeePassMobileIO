@@ -31,6 +31,17 @@ public interface PasswordCipher {
     String getName();
 
     /**
+     * Returns the length of the key length.
+     */
+    int getKeyLength();
+    
+    /**
+     * Initializes the password cipher with the given key.
+     * The cipher can not be uses before initializing it.
+     */
+    void init(byte[] key);
+    
+    /**
      * Encrypts a plain password.
      * @param plainPassword plain password text to encrypt
      * @return encrypted text
@@ -43,4 +54,10 @@ public interface PasswordCipher {
      * @return plain text
      */
     byte[] decrypt(byte[] cipherPassword);
+
+    /**
+     * Destroys the key of this password cipher instance.
+     * The cipher can not be used any more after releasing it.
+     */
+    void release();
 }

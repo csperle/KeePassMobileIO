@@ -83,9 +83,9 @@ public class KeePassMobileIOFactory {
     }
     
     protected CryptoManager createCryptoManager(Random rand) {
-	CryptoManager cm = new CryptoManager();
+	CryptoManager cm = new CryptoManager(rand);
 	cm.addKdbCipher(new AESCipher());
-	cm.addPasswordCipher(new RC4Cipher(rand.nextBytes(RC4Cipher.KEY_LENGTH)));
+	cm.addPasswordCipher(new RC4Cipher());
 	cm.addHash(new SHA256Hash());
 	return cm;
     }

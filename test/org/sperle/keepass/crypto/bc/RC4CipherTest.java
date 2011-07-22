@@ -3,6 +3,7 @@ package org.sperle.keepass.crypto.bc;
 import org.bouncycastle.util.encoders.Hex;
 import org.sperle.keepass.KeePassMobileIOTest;
 import org.sperle.keepass.crypto.KeePassCryptoException;
+import org.sperle.keepass.crypto.PasswordCipher;
 import org.sperle.keepass.util.Passwords;
 
 public class RC4CipherTest extends KeePassMobileIOTest {
@@ -24,7 +25,8 @@ public class RC4CipherTest extends KeePassMobileIOTest {
     }
     
     public void setUp() throws Exception {
-        rc4 = new RC4Cipher(TEST_KEY);
+        rc4 = new RC4Cipher();
+        rc4.init(TEST_KEY);
     }
 
     public void testRC4() throws KeePassCryptoException {

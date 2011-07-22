@@ -46,10 +46,10 @@ import org.sperle.keepass.util.Passwords;
  * This KeePass database manager loads and saves V1 databases.
  */
 public class KeePassDatabaseManagerV1 implements KeePassDatabaseManager {
-    private IOManager fileManager;
-    private CryptoManager cryptoManager;
-    private CloseStrategy closeStrategy;
-    private Random rand;
+    private final IOManager fileManager;
+    private final CryptoManager cryptoManager;
+    private final CloseStrategy closeStrategy;
+    private final Random rand;
     
     private Hashtable cryptoAlgorithms = new Hashtable();
     

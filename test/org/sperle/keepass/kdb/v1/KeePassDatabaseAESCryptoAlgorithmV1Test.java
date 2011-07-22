@@ -30,7 +30,7 @@ public class KeePassDatabaseAESCryptoAlgorithmV1Test extends KeePassMobileIOTest
     }
     
     public void setUp() throws Exception {
-	CryptoManager cm = new CryptoManager();
+	CryptoManager cm = new CryptoManager(null);
 	cm.addHash(new SHA256Hash());
 	cm.addKdbCipher(new AESCipher());
 	aes = new KeePassDatabaseAESCryptoAlgorithmV1(cm);
@@ -38,7 +38,7 @@ public class KeePassDatabaseAESCryptoAlgorithmV1Test extends KeePassMobileIOTest
 
     public void testMissingCipher() throws Exception {
         try {
-            CryptoManager cm = new CryptoManager();
+            CryptoManager cm = new CryptoManager(null);
             cm.addHash(new SHA256Hash());
             new KeePassDatabaseAESCryptoAlgorithmV1(cm);
             fail("Should fail with IllegalArgumentException");

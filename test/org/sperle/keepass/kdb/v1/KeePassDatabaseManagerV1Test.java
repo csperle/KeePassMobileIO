@@ -11,6 +11,7 @@ import org.sperle.keepass.kdb.AbstractKeePassDatabase;
 import org.sperle.keepass.kdb.DoNothingOnCloseStrategy;
 import org.sperle.keepass.kdb.KdbGroup;
 import org.sperle.keepass.kdb.KeePassDatabase;
+import org.sperle.keepass.rand.JdkRandom;
 import org.sperle.keepass.util.ByteArrays;
 import org.sperle.keepass.util.Passwords;
 
@@ -65,10 +66,10 @@ public class KeePassDatabaseManagerV1Test extends KeePassMobileIOTest {
     }
     
     public void setUp() throws Exception {
-	CryptoManager cm = new CryptoManager();
+	CryptoManager cm = new CryptoManager(new JdkRandom());
 	cm.addHash(new SHA256Hash());
 	cm.addKdbCipher(new AESCipher());
-	cm.addPasswordCipher(new RC4Cipher(TEST1_PASSWORD.getBytes()));
+	cm.addPasswordCipher(new RC4Cipher());
 	fileManager = new TestIOManager();
 	rand = new TestRandom();
 	dm = new KeePassDatabaseManagerV1(fileManager, cm, new DoNothingOnCloseStrategy(), rand);

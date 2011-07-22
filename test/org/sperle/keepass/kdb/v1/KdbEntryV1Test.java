@@ -3,6 +3,7 @@ package org.sperle.keepass.kdb.v1;
 import org.bouncycastle.util.encoders.Hex;
 import org.sperle.keepass.KeePassMobileIOTest;
 import org.sperle.keepass.TestRandom;
+import org.sperle.keepass.crypto.PasswordCipher;
 import org.sperle.keepass.crypto.bc.RC4Cipher;
 import org.sperle.keepass.kdb.KdbChangeEvent;
 import org.sperle.keepass.kdb.KdbChangeListener;
@@ -231,7 +232,9 @@ public class KdbEntryV1Test extends KeePassMobileIOTest {
         group.setId(12);
         
         byte[] id = new byte[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-        KdbEntryV1 entry = new KdbEntryV1(new RC4Cipher(TEST_KEY), id, group);
+        PasswordCipher cipher = new RC4Cipher();
+        cipher.init(TEST_KEY);
+        KdbEntryV1 entry = new KdbEntryV1(cipher, id, group);
         entry.setPassword(TEST_PASSWORD);
         
         assertNull(entry.getPasswordPlain());

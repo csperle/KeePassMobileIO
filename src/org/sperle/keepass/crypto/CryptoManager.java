@@ -22,6 +22,8 @@ package org.sperle.keepass.crypto;
 
 import java.util.Hashtable;
 
+import org.sperle.keepass.rand.Random;
+
 /**
  * The crypto manager manages the hash and cipher algorithms that are supported
  * by this KeePassIO distribution. Dev: CryptoManager works implementation
@@ -29,9 +31,15 @@ import java.util.Hashtable;
  */
 public class CryptoManager {
 
+    private final Random rand;
+    
     private Hashtable hashs = new Hashtable();
     private Hashtable kdbCiphers = new Hashtable();
     private Hashtable passwordCiphers = new Hashtable();
+    
+    public CryptoManager(Random rand) {
+        this.rand = rand;
+    }
     
     /**
      * Add a supported hash algorithm.
@@ -69,9 +77,13 @@ public class CryptoManager {
     }
 
     /**
-     * Returns a supported password cipher algorithm by name.
+     * Returns a freshly initialized supported password cipher algorithm by name.
      */
     public PasswordCipher getPasswordCipher(String name) {
-        return (PasswordCipher)passwordCiphers.get(name);
+        PasswordCipher cipher = (PasswordCipher)passwordCiphers.get(name);
+        if(cipher != null) {
+            cipher.init(rand.nextBytes(cipher.getKeyLength()));
+        }
+        return cipher;
     }
 }

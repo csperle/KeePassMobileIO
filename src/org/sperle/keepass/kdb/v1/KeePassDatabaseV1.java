@@ -23,6 +23,7 @@ package org.sperle.keepass.kdb.v1;
 import java.util.Vector;
 
 import org.sperle.keepass.crypto.PasswordCipher;
+import org.sperle.keepass.crypto.bc.RC4Cipher;
 import org.sperle.keepass.kdb.AbstractKeePassDatabase;
 import org.sperle.keepass.kdb.KdbEntry;
 import org.sperle.keepass.kdb.KdbGroup;
@@ -441,5 +442,7 @@ public final class KeePassDatabaseV1 extends AbstractKeePassDatabase {
         ByteArrays.fillCompletelyWith(this.masterSeed, (byte)0);
         ByteArrays.fillCompletelyWith(this.encryptionIV, (byte)0);
         ByteArrays.fillCompletelyWith(this.masterSeed2, (byte)0);
+        
+        cipher.release();
     }
 }
