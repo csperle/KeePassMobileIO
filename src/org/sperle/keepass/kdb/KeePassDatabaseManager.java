@@ -90,13 +90,29 @@ public interface KeePassDatabaseManager {
     void addAttachment(KdbEntry entry, String filename) throws IOException;
 
     /**
-     * Sets the file that is used as part of the master key.
+     * Sets (changes) the password that is used as part of the master key.
+     * @param kdb database to change
+     * @param masterPassword the password
+     * @throws KeePassDatabaseException if KeePass database is not supported
+     */
+    void setMasterPassword(KeePassDatabase kdb, byte[] masterPassword) throws KeePassDatabaseException;
+    
+    /**
+     * Sets (changes) the file that is used as part of the master key.
+     * @param kdb database to change
      * @param filename the path/name of the key file
      * @throws IOException if key file could not be loaded
      * @throws KeePassDatabaseException if KeePass database is not supported
      */
     void setKeyFile(KeePassDatabase kdb, String filename) throws IOException, KeePassDatabaseException;
 
+    /**
+     * Removes the file that is used as part of the master key.
+     * @param kdb database to change
+     * @throws KeePassDatabaseException if KeePass database is not supported
+     */
+    void removeKeyFile(KeePassDatabase kdb) throws KeePassDatabaseException;
+    
     /**
      * Closes the KeePass database.
      * @param kdb KeePass database to close

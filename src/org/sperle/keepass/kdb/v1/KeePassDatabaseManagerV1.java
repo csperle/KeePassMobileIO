@@ -148,6 +148,14 @@ public class KeePassDatabaseManagerV1 implements KeePassDatabaseManager {
         entry.addAttachment(filename.substring(filename.lastIndexOf('/') + 1, filename.length()), data);
     }
     
+    public void setMasterPassword(KeePassDatabase kdb, byte[] masterPassword) throws KeePassDatabaseException {
+        if(!(kdb instanceof KeePassDatabaseV1)) {
+            throw new KeePassDatabaseException("KeePass database version not supported!");
+        }
+        KeePassDatabaseV1 kdbV1 = (KeePassDatabaseV1)kdb;
+        kdbV1.setMasterPassword(masterPassword);
+    }
+    
     public void setKeyFile(KeePassDatabase kdb, String filename) throws IOException, KeePassDatabaseException {
         if(!(kdb instanceof KeePassDatabaseV1)) {
             throw new KeePassDatabaseException("KeePass database version not supported!");
@@ -161,6 +169,14 @@ public class KeePassDatabaseManagerV1 implements KeePassDatabaseManager {
         } finally { // delete all sensible data
             ByteArrays.fillCompletelyWith(keyFile, (byte)0);
         }
+    }
+    
+    public void removeKeyFile(KeePassDatabase kdb) throws KeePassDatabaseException {
+        if(!(kdb instanceof KeePassDatabaseV1)) {
+            throw new KeePassDatabaseException("KeePass database version not supported!");
+        }
+        KeePassDatabaseV1 kdbV1 = (KeePassDatabaseV1)kdb;
+        kdbV1.removeKeyFile();
     }
     
     public boolean save(KeePassDatabase kdb, String fileName, ProgressMonitor pm) throws IOException, KeePassDatabaseException, KeePassCryptoException {

@@ -46,7 +46,7 @@ public final class KeePassMobileIO {
      * @param name the name of the new database
      * @param masterPassword key for encryption
      * @param keyFileName path/name of key file for encryption
-     * @param usePasswordEncryption set to true, if password/keyfile memory encryption should be used
+     * @param usePasswordEncryption set to true, if password memory encryption should be used
      * @throws IOException if key file can not be loaded
      */
     public KeePassDatabase create(String name, String masterPassword, String keyFileName, boolean usePasswordEncryption) throws IOException {
@@ -58,7 +58,7 @@ public final class KeePassMobileIO {
      * @param filename path/name to the kdb file
      * @param masterPassword the master password to decrypt the database
      * @param keyFileName path/name of a key file to decrypt the database
-     * @param usePasswordEncryption set to true, if password/keyfile memory encryption should be used
+     * @param usePasswordEncryption set to true, if password memory encryption should be used
      * @param pm the progress monitor to monitor loading process, can be null
      * @return the database instance to access it's content
      * @throws IOException if kdb file could not be loaded
@@ -92,13 +92,33 @@ public final class KeePassMobileIO {
     }
     
     /**
-     * Sets the file that is used as part of the master key.
+     * Sets (changes) the password that is used as part of the master key.
+     * @param kdb database to change
+     * @param masterPassword the password
+     * @throws KeePassDatabaseException if KeePass database is not supported
+     */
+    public void setMasterPassword(KeePassDatabase kdb, byte[] masterPassword) throws KeePassDatabaseException {
+        dbm.setMasterPassword(kdb, masterPassword);
+    }
+    
+    /**
+     * Sets (changes) the file that is used as part of the master key.
+     * @param kdb database to change
      * @param filename the path/name of the key file
      * @throws IOException if key file could not be loaded
      * @throws KeePassDatabaseException if KeePass database is not supported
      */
     public void setKeyFile(KeePassDatabase kdb, String filename) throws IOException, KeePassDatabaseException {
         dbm.setKeyFile(kdb, filename);
+    }
+    
+    /**
+     * Removes the file that is used as part of the master key.
+     * @param kdb database to change
+     * @throws KeePassDatabaseException if KeePass database is not supported
+     */
+    public void removeKeyFile(KeePassDatabase kdb) throws KeePassDatabaseException {
+        dbm.removeKeyFile(kdb);
     }
     
     /**
