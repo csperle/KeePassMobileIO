@@ -14,7 +14,7 @@ public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
     private TestRandom rand;
     
     public KeePassDatabaseV1Test() {
-        super(24, "KeePassDatabaseV1Test");
+        super(25, "KeePassDatabaseV1Test");
     }
 
     public void test(int testNumber) throws Throwable {
@@ -23,26 +23,27 @@ public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
         case 1:testSignatureIncorrect();break;
         case 2:testAlgorithm();break;
         case 3:testVersion();break;
-        case 4:testWrongVersion();break;
-        case 5:testMasterSeed();break;
-        case 6:testEncryptionIV();break;
-        case 7:testNumGroups();break;
-        case 8:testNumEntries();break;
-        case 9:testContentHash();break;
-        case 10:testMasterSeed2();break;
-        case 11:testNumKeyEncRounds();break;
-        case 12:testGroupsAndEntries();break;
-        case 13:testCreateGroup();break;
-        case 14:testAddGroup();break;
-        case 15:testRemoveGroup();break;
-        case 16:testCreateEntry();break;
-        case 17:testAddEntry();break;
-        case 18:testRemoveEntry();break;
-        case 19:testGetPlainContentData();break;
-        case 20:testCheckNewBackupFlag();break;
-        case 21:testBackup();break;
-        case 22:testMove();break;
-        case 23:testExtractHeaderAndDeleteSensibleData();break;
+        case 4:testPassMinorVersionChange();break;
+        case 5:testFailMajorVersionChange();break;
+        case 6:testMasterSeed();break;
+        case 7:testEncryptionIV();break;
+        case 8:testNumGroups();break;
+        case 9:testNumEntries();break;
+        case 10:testContentHash();break;
+        case 11:testMasterSeed2();break;
+        case 12:testNumKeyEncRounds();break;
+        case 13:testGroupsAndEntries();break;
+        case 14:testCreateGroup();break;
+        case 15:testAddGroup();break;
+        case 16:testRemoveGroup();break;
+        case 17:testCreateEntry();break;
+        case 18:testAddEntry();break;
+        case 19:testRemoveEntry();break;
+        case 20:testGetPlainContentData();break;
+        case 21:testCheckNewBackupFlag();break;
+        case 22:testBackup();break;
+        case 23:testMove();break;
+        case 24:testExtractHeaderAndDeleteSensibleData();break;
         default:break;
         }
     }
@@ -87,13 +88,21 @@ public class KeePassDatabaseV1Test extends KeePassMobileIOTest {
 	assertTrue(kdb.verifyHeader());
     }
     
-    public void testWrongVersion() throws Exception {
+    public void testPassMinorVersionChange() throws Exception {
+        byte[] version = new byte[4];
+        BinaryData.fromInt(KeePassDatabaseV1.VERSION + 5, version, 0);
+        kdb.extractHeader(getValidKdbHeader(12, version));
+        assertTrue(kdb.isVersionCorrect());
+        assertTrue(kdb.verifyHeader());
+    }
+    
+    public void testFailMajorVersionChange() throws Exception {
         try {
             byte[] version = new byte[4];
-            BinaryData.fromInt(KeePassDatabaseV1.VERSION + 1, version, 0);
+            BinaryData.fromInt(KeePassDatabaseV1.VERSION - 1, version, 0);
             kdb.extractHeader(getValidKdbHeader(12, version));
             assertFalse(kdb.isVersionCorrect());
-            assertTrue(kdb.verifyHeader());
+            kdb.verifyHeader();
             fail("Should fail with KeePassDatabaseException");
         } catch (KeePassDatabaseException e) {
         }
