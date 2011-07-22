@@ -290,8 +290,6 @@ public class KdbEntryV1 implements KdbEntry, org.sperle.keepass.util.Comparable 
     public void setPassword(byte[] password) {
         beforeChange();
         if(usePasswordEncryption() && !Passwords.isEmpty(password)) {
-// TODO remove DEBUG message
-System.out.println("ENcrypting password: " + Passwords.toString(password));
             this.passwordEncrypted = password != null ? passwordCipher.encrypt(password) : null;
         } else {
             this.passwordPlain = ByteArrays.returnCopy(password);
@@ -302,8 +300,6 @@ System.out.println("ENcrypting password: " + Passwords.toString(password));
     public byte[] getPassword() {
         if(usePasswordEncryption() && !Passwords.isEmpty(this.passwordPlain)) {
             byte[] decryptedPassword = this.passwordEncrypted != null ? passwordCipher.decrypt(this.passwordEncrypted) : null;
-// TODO remove DEBUG message
-System.out.println("DEcrypting password: " + Passwords.toString(decryptedPassword));
             return decryptedPassword;
         } else {
             return ByteArrays.returnCopy(this.passwordPlain);
